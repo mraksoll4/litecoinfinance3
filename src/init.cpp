@@ -75,7 +75,6 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/signals2/signal.hpp>
 #include <boost/thread.hpp>
-#include <openssl/crypto.h>
 
 #if ENABLE_ZMQ
 #include <zmq/zmqabstractnotifier.h>
