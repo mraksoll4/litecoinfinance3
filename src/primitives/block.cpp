@@ -4,9 +4,10 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <primitives/block.h>
-
+#include <util/strencodings.h>
 #include <hash.h>
 #include <tinyformat.h>
+#include <crypto/common.h>
 #include <crypto/scrypt.h>
 
 uint256 CBlockHeader::GetHash() const
