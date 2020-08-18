@@ -1830,7 +1830,6 @@ static unsigned int GetBlockScriptFlags(const CBlockIndex* pindex, const Consens
 
     // Start enforcing P2SH (BIP16)
     if (pindex->nHeight >= consensusparams.BIP16Height) {
-    {
         flags |= SCRIPT_VERIFY_P2SH;
     }
 
