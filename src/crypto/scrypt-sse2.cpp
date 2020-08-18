@@ -34,7 +34,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <openssl/sha.h>
+#include "sha256_c.h"
 
 #include <emmintrin.h>
 
