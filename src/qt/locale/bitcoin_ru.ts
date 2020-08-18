@@ -189,7 +189,7 @@
     </message>
     <message>
         <source>Remember that encrypting your wallet cannot fully protect your litecoinfinances from being stolen by malware infecting your computer.</source>
-        <translation>Помните, что шифрование вашего кошелька не может полностью защитить ваши биткойны от кражи вредоносными программами, заражающими ваш компьютер.</translation>
+        <translation>Помните, что шифрование вашего кошелька не может полностью защитить ваши лайткойн финансы от кражи вредоносными программами, заражающими ваш компьютер.</translation>
     </message>
     <message>
         <source>Wallet to be encrypted</source>
@@ -499,7 +499,7 @@
     </message>
     <message>
         <source>Open a litecoinfinance: URI</source>
-        <translation>Открыть биткойн: URI</translation>
+        <translation>Открыть лайткойн финанс: URI</translation>
     </message>
     <message>
         <source>Open Wallet</source>
@@ -1078,7 +1078,7 @@
     <name>OpenURIDialog</name>
     <message>
         <source>Open litecoinfinance URI</source>
-        <translation>Открыть URI биткойна</translation>
+        <translation>Открыть URI лайткойн финанса</translation>
     </message>
     <message>
         <source>URI:</source>
@@ -1462,7 +1462,7 @@
     </message>
     <message>
         <source>Cannot start litecoinfinance: click-to-pay handler</source>
-        <translation>Не удаётся запустить биткойн: обработчик click-to-pay</translation>
+        <translation>Не удаётся запустить лайткойн финанс: обработчик click-to-pay</translation>
     </message>
     <message>
         <source>URI handling</source>
@@ -1532,7 +1532,7 @@
     </message>
     <message>
         <source>Enter a LitecoinFinance address (e.g. %1)</source>
-        <translation>Введите биткойн-адрес (напр. %1)</translation>
+        <translation>Введите лайткойн финанс-адрес (напр. %1)</translation>
     </message>
     <message>
         <source>%1 d</source>
@@ -2282,7 +2282,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     </message>
     <message>
         <source>When there is less transaction volume than space in the blocks, miners as well as relaying nodes may enforce a minimum fee. Paying only this minimum fee is just fine, but be aware that this can result in a never confirming transaction once there is more demand for litecoinfinance transactions than the network can process.</source>
-        <translation>Когда объем транзакций меньше, чем пространство в блоках, майнеры, а также ретранслирующие узлы могут устанавливать минимальную плату. Платить только эту минимальную комиссию - это хорошо, но имейте в виду, что это может привести к тому, что транзакция никогда не будет подтверждена, если будет больше биткойн-транзакций, чем может обработать сеть.</translation>
+        <translation>Когда объем транзакций меньше, чем пространство в блоках, майнеры, а также ретранслирующие узлы могут устанавливать минимальную плату. Платить только эту минимальную комиссию - это хорошо, но имейте в виду, что это может привести к тому, что транзакция никогда не будет подтверждена, если будет больше лайткойн финанс-транзакций, чем может обработать сеть.</translation>
     </message>
     <message>
         <source>A too low fee might result in a never confirming transaction (read the tooltip)</source>
@@ -2533,7 +2533,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     </message>
     <message>
         <source>The fee will be deducted from the amount being sent. The recipient will receive less litecoinfinances than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</source>
-        <translation>С отправляемой суммы будет удержана комиссия. Получателю придёт меньше биткойнов, чем вы вводите в поле количества. Если выбрано несколько получателей, комиссия распределяется поровну.</translation>
+        <translation>С отправляемой суммы будет удержана комиссия. Получателю придёт меньше лайткойн финансов, чем вы вводите в поле количества. Если выбрано несколько получателей, комиссия распределяется поровну.</translation>
     </message>
     <message>
         <source>S&amp;ubtract fee from amount</source>
@@ -2561,7 +2561,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     </message>
     <message>
         <source>A message that was attached to the litecoinfinance: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the LitecoinFinance network.</source>
-        <translation>Сообщение прикрепленное к биткойн идентификатору будет сохранено вместе с транзакцией для вашего сведения. Заметьте: Сообщение не будет отправлено через сеть Биткойн.</translation>
+        <translation>Сообщение прикрепленное к лайткойн финанс идентификатору будет сохранено вместе с транзакцией для вашего сведения. Заметьте: Сообщение не будет отправлено через сеть Биткойн.</translation>
     </message>
     <message>
         <source>Pay To:</source>
@@ -2595,7 +2595,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
     </message>
     <message>
         <source>You can sign messages/agreements with your addresses to prove you can receive litecoinfinances sent to them. Be careful not to sign anything vague or random, as phishing attacks may try to trick you into signing your identity over to them. Only sign fully-detailed statements you agree to.</source>
-        <translation>Вы можете подписывать сообщения/соглашения своими адресами, чтобы доказать свою возможность получать биткойны на них. Будьте осторожны, не подписывайте что-то неопределённое или случайное, так как фишинговые атаки могут обманным путём заставить вас подписать нежелательные сообщения. Подписывайте только те сообщения, с которыми вы согласны вплоть до мелочей.</translation>
+        <translation>Вы можете подписывать сообщения/соглашения своими адресами, чтобы доказать свою возможность получать лайткойн финансы на них. Будьте осторожны, не подписывайте что-то неопределённое или случайное, так как фишинговые атаки могут обманным путём заставить вас подписать нежелательные сообщения. Подписывайте только те сообщения, с которыми вы согласны вплоть до мелочей.</translation>
     </message>
     <message>
         <source>The LitecoinFinance address to sign the message with</source>

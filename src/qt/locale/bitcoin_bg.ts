@@ -387,7 +387,7 @@
     </message>
     <message>
         <source>Request payments (generates QR codes and litecoinfinance: URIs)</source>
-        <translation>Изискване на плащания(генерира QR кодове и биткойн: URIs)</translation>
+        <translation>Изискване на плащания(генерира QR кодове и лайткойн финанс: URIs)</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
