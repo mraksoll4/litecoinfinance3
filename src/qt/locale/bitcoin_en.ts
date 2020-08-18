@@ -325,7 +325,7 @@
 <context>
     <name>BitcoinGUI</name>
     <message>
-        <location filename="../litecoinfinancegui.cpp" line="+316"/>
+        <location filename="../bitcoingui.cpp" line="+316"/>
         <source>Sign &amp;message...</source>
         <translation>Sign &amp;message...</translation>
     </message>
@@ -792,7 +792,7 @@
         <translation>Wallet is &lt;b&gt;encrypted&lt;/b&gt; and currently &lt;b&gt;locked&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../litecoinfinance.cpp" line="+384"/>
+        <location filename="../bitcoin.cpp" line="+384"/>
         <source>A fatal error occurred. LitecoinFinance can no longer continue safely and will quit.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1931,7 +1931,7 @@
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../litecoinfinanceunits.cpp" line="+195"/>
+        <location filename="../bitcoinunits.cpp" line="+195"/>
         <source>Amount</source>
         <translation type="unfinished">Amount</translation>
     </message>
@@ -2051,7 +2051,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../litecoinfinance.cpp" line="+114"/>
+        <location filename="../bitcoin.cpp" line="+114"/>
         <source>Error: Specified data directory &quot;%1&quot; does not exist.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4107,7 +4107,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
 <context>
     <name>UnitDisplayStatusBarControl</name>
     <message>
-        <location filename="../litecoinfinancegui.cpp" line="+156"/>
+        <location filename="../bitcoingui.cpp" line="+156"/>
         <source>Unit to show amounts in. Click to select another unit.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4265,7 +4265,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
 <context>
     <name>bitcoin-core</name>
     <message>
-        <location filename="../litecoinfinancestrings.cpp" line="+28"/>
+        <location filename="../bitcoinstrings.cpp" line="+28"/>
         <source>Distributed under the MIT software license, see the accompanying file %s or %s</source>
         <translation type="unfinished"></translation>
     </message>
