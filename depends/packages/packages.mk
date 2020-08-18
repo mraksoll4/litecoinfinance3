@@ -1,4 +1,4 @@
-packages:=boost openssl libevent zeromq
+packages:=boost openssl libevent
 
 qt_packages = zlib
 
