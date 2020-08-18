@@ -64,7 +64,7 @@ public:
     CMainParams() {
         strNetworkID = CBaseChainParams::MAIN;
         consensus.nSubsidyHalvingInterval = 840000; // 87afb798a3ad9378fcd56123c81fb31cfd9a8df4719b9774d71730c16315a092 - October 1, 2012
-        consensus.BIP16Exception = uint256S("0x00000000000002dc756eebf4f49723ed8d30cc28a5f108eb94b1ba88ac4f9c22");
+        consensus.BIP16Height = 218579;
         consensus.BIP34Height = 710000;
         consensus.BIP34Hash = uint256S("fa09d204a83a768ed5a7c8d441fa62f2043abf420cff1226c7b4329aeb9d51cf");
         consensus.BIP65Height = 918684; // bab3041e8977e0dc3eeff63fe707b92bde1dd449d8efafb248c27c8264cc311a
@@ -172,7 +172,7 @@ public:
     CTestNetParams() {
         strNetworkID = CBaseChainParams::TESTNET;
         consensus.nSubsidyHalvingInterval = 840000;
-        consensus.BIP16Exception = 0; // always enforce P2SH BIP16 on testnet
+        consensus.BIP16Height = 0; // always enforce P2SH BIP16 on testnet
         consensus.BIP34Height = 76;
         consensus.BIP34Hash = uint256S("8075c771ed8b495ffd943980a95f702ab34fce3c8c54e379548bda33cc8c0573");
         consensus.BIP65Height = 76; // 00000000007f6655f22f98e72ed80d8b06dc761d5da09df0fa1dc4be4f861eb6
@@ -256,7 +256,7 @@ public:
     explicit CRegTestParams(const ArgsManager& args) {
         strNetworkID =  CBaseChainParams::REGTEST;
         consensus.nSubsidyHalvingInterval = 150;
-        consensus.BIP16Exception = 0;
+        consensus.BIP16Height = 0;
         consensus.BIP34Height = 500; // BIP34 activated on regtest (Used in functional tests)
         consensus.BIP34Hash = uint256();
         consensus.BIP65Height = 1351; // BIP65 activated on regtest (Used in functional tests)
