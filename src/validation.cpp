@@ -3577,7 +3577,7 @@ static bool ContextualCheckBlock(const CBlock& block, BlockValidationState& stat
     return true;
 }
 
-bool BlockManager::AcceptBlockHeader(const CBlockHeader& block, BlockValidationState& state, const CChainParams& chainparams, CBlockIndex** ppindex)
+bool BlockManager::AcceptBlockHeader(const CBlockHeader& block, BlockValidationState& state, const CChainParams& chainparams, CBlockIndex** ppindex, CBlockIndex *pindex)
 {
     AssertLockHeld(cs_main);
     // Check for duplicate
@@ -3609,7 +3609,7 @@ bool BlockManager::AcceptBlockHeader(const CBlockHeader& block, BlockValidationS
         }
         pindexPrev = (*mi).second;
 		if  ( !(block.nVersion & VERSIONBITS_FORK_CPU) && pindexPrev->nHeight + 1 >= chainparams.GetConsensus().CPUHeight) {
-        	state.Invalid(BlockValidationResult::BLOCK_CACHED_INVALID, strprintf("bad-version(0x%08x)", block.nVersion), strprintf("rejected nVersion=0x%08x block", block.nVersion));
+        	state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, strprintf("bad-version(0x%08x)", block.nVersion), strprintf("rejected nVersion=0x%08x block", block.nVersion));
         	return error("%s: Reject Old nVersion After Fork: %s, %s", __func__, hash.ToString(), state.ToString());
         }
 
