@@ -3610,11 +3610,11 @@ bool BlockManager::AcceptBlockHeader(const CBlockHeader& block, BlockValidationS
         pindexPrev = (*mi).second;
 		if  ( !(block.nVersion & VERSIONBITS_FORK_CPU) && pindexPrev->nHeight + 1 >= chainparams.GetConsensus().CPUHeight) {
         	state.Invalid(BlockValidationResult::BLOCK_CACHED_INVALID, strprintf("bad-version(0x%08x)", block.nVersion), strprintf("rejected nVersion=0x%08x block", block.nVersion));
-        	return error("%s: Reject Old nVersion After Fork: %s, %s", __func__, hash.ToString(), FormatStateMessage(state));
+        	return error("%s: Reject Old nVersion After Fork: %s, %s", __func__, hash.ToString(), state.ToString());
         }
 
 
-        if (miSelf != mapBlockIndex.end()) {
+        if (miSelf != m_blockman.m_block_index.end()) {
             // Block header is already known.
             pindex = miSelf->second;
             if (ppindex)
