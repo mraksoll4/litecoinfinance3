@@ -349,7 +349,7 @@ bool IsCPUHardForkEnabled(const CBlockIndex* pindexPrev, const Consensus::Params
 
 bool IsCPUHardForkEnabledForCurrentBlock(const Consensus::Params& params) {
     AssertLockHeld(cs_main);
-    return IsCPUHardForkEnabled(chainActive.Tip(), params);
+    return IsCPUHardForkEnabled(ChainActive().Tip(), params);
 }
 
 /* Make mempool consistent after a reorg, by re-adding or recursively erasing
