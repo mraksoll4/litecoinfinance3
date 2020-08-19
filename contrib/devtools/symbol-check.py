@@ -99,7 +99,6 @@ MACHO_ALLOWED_LIBRARIES = {
 'CoreServices', # operating system services
 'CoreText', # interface for laying out text and handling fonts.
 'Security',
-'security',
 'Foundation', # base layer functionality for apps/frameworks
 'ImageIO', # read and write image file formats.
 'IOKit', # user-space access to hardware devices and drivers.
