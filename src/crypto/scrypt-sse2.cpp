@@ -36,7 +36,7 @@
 #include <string.h>
 #include <crypto/sha.h>
 
-#include <emmintrin.h>
+#include <openssl>
 
 static inline void xor_salsa8_sse2(__m128i B[4], const __m128i Bx[4])
 {

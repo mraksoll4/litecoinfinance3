@@ -387,7 +387,6 @@ crypto_libbitcoin_crypto_base_a_SOURCES = \
   crypto/scrypt.cpp \
   crypto/scrypt-sse2.cpp \
   crypto/scrypt.h \
-  crypto/sha.h \
   crypto/sha1.cpp \
   crypto/sha1.h \
   crypto/sha256.cpp \
