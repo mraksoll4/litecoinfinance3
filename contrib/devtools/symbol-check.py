@@ -61,6 +61,7 @@ ELF_ALLOWED_LIBRARIES = {
 'libgcc_s.so.1', # GCC base support
 'libc.so.6', # C library
 'libpthread.so.0', # threading
+'libanl.so.1', # DNS resolve
 'libm.so.6', # math library
 'librt.so.1', # real-time (clock)
 'libatomic.so.1',
@@ -70,6 +71,8 @@ ELF_ALLOWED_LIBRARIES = {
 'ld-linux-armhf.so.3', # 32-bit ARM dynamic linker
 'ld-linux-riscv64-lp64d.so.1', # 64-bit RISC-V dynamic linker
 # bitcoin-qt only
+'libX11-xcb.so.1', # part of X11
+'libX11.so.6', # part of X11
 'libxcb.so.1', # part of X11
 'libfontconfig.so.1', # font support
 'libfreetype.so.6', # font parsing
