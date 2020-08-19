@@ -3612,17 +3612,6 @@ bool BlockManager::AcceptBlockHeader(const CBlockHeader& block, BlockValidationS
         	state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, strprintf("bad-version(0x%08x)", block.nVersion), strprintf("rejected nVersion=0x%08x block", block.nVersion));
         	return error("%s: Reject Old nVersion After Fork: %s, %s", __func__, hash.ToString(), state.ToString());
         }
-
-
-        if (miSelf != m_block_index.end()) {
-            // Block header is already known.
-            pindex = miSelf->second;
-            if (ppindex)
-                *ppindex = pindex;
-            if (pindex->nStatus & BLOCK_FAILED_MASK)
-                return state.Invalid(error("%s: block %s is marked invalid", __func__, hash.ToString()), 0, "duplicate");
-            return true;
-        }
         if (pindexPrev->nStatus & BLOCK_FAILED_MASK) {
             LogPrintf("ERROR: %s: prev block invalid\n", __func__);
             return state.Invalid(BlockValidationResult::BLOCK_INVALID_PREV, "bad-prevblk");
