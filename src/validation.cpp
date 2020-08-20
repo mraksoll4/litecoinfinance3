@@ -119,6 +119,8 @@ bool fCheckpointsEnabled = DEFAULT_CHECKPOINTS_ENABLED;
 size_t nCoinCacheUsage = 5000 * 300;
 uint64_t nPruneTarget = 0;
 int64_t nMaxTipAge = DEFAULT_MAX_TIP_AGE;
+std::atomic<double> meanBlockHeightConnectedNodes{-1};
+std::atomic<int> estimatedConnectedNodes{0};
 
 uint256 hashAssumeValid;
 arith_uint256 nMinimumChainWork;
@@ -5140,3 +5142,57 @@ public:
     }
 };
 static CMainCleanup instance_of_cmaincleanup;
+
+/**
+ * Returns the estimated blockchain sync progress.
+ * @param activeChainHeight
+ * @return
+ */
+double SyncProgress(const int activeChainHeight) {
+    // If chain height is invalid or no nodes detected return 0 or last known mean calc
+    if (activeChainHeight <= 0 || estimatedConnectedNodes == 0) {
+        if (meanBlockHeightConnectedNodes > 0.0) {
+            double syncPercent = static_cast<double>(activeChainHeight)/static_cast<double>(meanBlockHeightConnectedNodes);
+            if (syncPercent > 1.0)
+                syncPercent = 1.0;
+            return syncPercent;
+        }
+        return 0.0;
+    }
+
+    // Return estimated sync percentage
+    double syncPercent = static_cast<double>(activeChainHeight)/static_cast<double>(meanBlockHeightConnectedNodes);
+    if (syncPercent > 1.0)
+        syncPercent = 1.0;
+    else if (syncPercent < 0)
+        syncPercent = 0;
+    return syncPercent;
+}
+
+bool GetTxFunc(const COutPoint & out, CTransactionRef & tx) {
+    uint256 hashBlock;
+    if (!GetTransaction(out.hash, tx, Params().GetConsensus(), hashBlock))
+        return false;
+    {
+        LOCK(cs_main);
+        Coin coin;
+        if (!pcoinsTip->GetCoin(out, coin))
+            return false;
+    }
+    return true;
+}
+
+bool IsServiceNodeBlockValidFunc(const uint64_t & blockNumber, const uint256 & blockHash, const bool & checkStale) {
+    LOCK(cs_main);
+    if (checkStale && blockNumber < chainActive.Height() - SNODE_STALE_BLOCKS) // check if stale
+        return false; // only accept blocks that meet the threshold
+    const auto block = chainActive.Tip()->GetAncestor(blockNumber);
+    if (!block)
+        return false; // fail if block wasn't found
+    return block->GetBlockHash() == blockHash;
+}
+
+int GetChainTipHeight() {
+    LOCK(cs_main);
+    return chainActive.Height();
+}

@@ -482,6 +482,11 @@ std::string ArgsManager::GetHelpMessage() const
             case OptionsCategory::REGISTER_COMMANDS:
                 usage += HelpMessageGroup("Register Commands:");
                 break;
+            case OptionsCategory::XBRIDGE:
+                usage += HelpMessageGroup("XBridge Commands:");
+                break;
+            case OptionsCategory::XROUTER:
+                usage += HelpMessageGroup("XRouter Commands:");
             default:
                 break;
         }

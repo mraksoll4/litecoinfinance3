@@ -37,6 +37,12 @@
 #include <memory>
 #include <stdint.h>
 
+#ifdef ENABLE_WALLET
+#include <wallet/wallet.h>
+#include <xbridge/util/xutil.h>
+#endif // ENABLE_WALLET
+
+
 /**
  * Return average network hashes per second based on the last 'lookup' blocks,
  * or from the last difficulty change if 'lookup' is nonpositive.

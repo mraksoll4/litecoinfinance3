@@ -41,6 +41,7 @@
 #include <scheduler.h>
 #include <script/sigcache.h>
 #include <script/standard.h>
+#include <servicenode/servicenodemgr.h>
 #include <shutdown.h>
 #include <timedata.h>
 #include <torcontrol.h>
@@ -62,6 +63,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <set>
+
+#include <xbridge/xbridgeapp.h>
+#include <xrouter/xrouterapp.h>
 
 #ifndef WIN32
 #include <attributes.h>
@@ -188,6 +192,13 @@ void Shutdown(NodeContext& node)
     /// module was initialized.
     util::ThreadRename("shutoff");
     mempool.AddTransactionsUpdated(1);
+    // Shutdown xbridge
+    xbridge::App::instance().cancelMyXBridgeTransactions();
+    xbridge::App::instance().disconnectWallets();
+    xbridge::App::instance().stop();
+
+    // Shutdown xrouter
+    xrouter::App::instance().stop();
 
     StopHTTPRPC();
     StopREST();
@@ -570,6 +581,19 @@ void SetupServerArgs()
     gArgs.AddArg("-rpcwhitelistdefault", "Sets default behavior for rpc whitelisting. Unless rpcwhitelistdefault is set to 0, if any -rpcwhitelist is set, the rpc server acts as if all rpc users are subject to empty-unless-otherwise-specified whitelists. If rpcwhitelistdefault is set to 1 and no -rpcwhitelist is set, rpc server acts as if all rpc users are subject to empty whitelists.", ArgsManager::ALLOW_BOOL, OptionsCategory::RPC);
     gArgs.AddArg("-rpcworkqueue=<n>", strprintf("Set the depth of the work queue to service RPC calls (default: %d)", DEFAULT_HTTP_WORKQUEUE), ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY, OptionsCategory::RPC);
     gArgs.AddArg("-server", "Accept command line and JSON-RPC commands", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+
+    // XBridge
+    gArgs.AddArg("-servicenode", strprintf("Auto register this service node on application start (default: %u)", false), false, OptionsCategory::XBRIDGE);
+    gArgs.AddArg("-enableexchange", strprintf("Enable exchange mode on this service node (default: %u)", false), false, OptionsCategory::XBRIDGE);
+    gArgs.AddArg("-orderinputscheck", strprintf("Time interval for the utxo validity check on order inputs (default: %d seconds)", 900), false, OptionsCategory::XBRIDGE);
+    gArgs.AddArg("-maxmempoolxbridge", strprintf("Maximum size in MB (megabytes) for the xbridge mempool (default: %dMB)", 128), false, OptionsCategory::XBRIDGE);
+    gArgs.AddArg("-dxnowallets", strprintf("Show all orders across the network for non-local wallets"), false, OptionsCategory::XBRIDGE);
+    gArgs.AddArg("-rpcxbridgetimeout", strprintf("Timeout for internal XBridge RPC calls (default: %d seconds)", 120), false, OptionsCategory::XBRIDGE);
+
+    // XRouter
+    gArgs.AddArg("-xrouter", strprintf("Enable XRouter services (default: %u)", true), false, OptionsCategory::XROUTER);
+    gArgs.AddArg("-xrouterbanscore", strprintf("Ban XRouter nodes who's score is lower than this value (default: %u)", -200), false, OptionsCategory::XROUTER);
+    gArgs.AddArg("-rpcxroutertimeout", strprintf("Timeout for internal XRouter RPC calls (default: %d seconds)", 60), false, OptionsCategory::XROUTER);
 
 #if HAVE_DECL_DAEMON
     gArgs.AddArg("-daemon", "Run in the background as a daemon and accept commands", ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
@@ -1802,6 +1826,9 @@ bool AppInitMain(NodeContext& node)
 
     // ********************************************************* Step 12: start node
 
+    // Signal service node list support
+    nLocalServices = ServiceFlags(nLocalServices | NODE_SNODE_LIST);
+
     int chain_active_height;
 
     //// debug print
@@ -1879,6 +1906,67 @@ bool AppInitMain(NodeContext& node)
     // ********************************************************* Step 13: finished
 
     SetRPCWarmupFinished();
+
+    // ********************************************************* Start XBridge and XRouter
+#ifdef ENABLE_WALLET
+    if (!ShutdownRequested()) {
+        sn::ServiceNodeMgr & smgr = sn::ServiceNodeMgr::instance();
+        std::set<sn::ServiceNodeConfigEntry> entries;
+        if (!smgr.loadSnConfig(entries))
+            LogPrint(BCLog::SNODE, "Failed to load service node entries from servicenode.conf\n");
+
+        uiInterface.InitMessage(_("Starting xbridge service"));
+        xbridge::App & xapp = xbridge::App::instance();
+        xbridge::App::createConf(); // create config if it doesn't exist
+        xapp.init(); // init xbridge
+        xapp.start(); // start xbridge
+
+        xrouter::App & xrapp = xrouter::App::instance();
+        xrouter::App::createConf(GetDataDir(false)); // create config if it doesn't exist
+        if (xrouter::App::isEnabled()) {
+            uiInterface.InitMessage(_("Starting xrouter service"));
+            if (!xrapp.init(GetDataDir(false))) // start xrouter
+                LogPrintf("XRouter failed to start, please check your configs\n");
+            xrapp.start();
+        }
+
+        // If there's snode entries, proceed to register them
+        if (!entries.empty()) {
+            auto wallets = GetWallets();
+            std::string failReason;
+            for (const auto & snode : entries) {
+                bool haveAddr{false};
+                for (auto & w : wallets) {
+                    if (w->HaveKey(boost::get<CKeyID>(snode.address))) {
+                        haveAddr = true;
+                        break;
+                    }
+                }
+                if (haveAddr) {
+                    if (!smgr.registerSn(snode, g_connman.get(), wallets, &failReason))
+                        LogPrintf("Failed to register service node %s: %s\n", snode.alias, failReason);
+                } else if (!smgr.hasActiveSn())
+                    LogPrintf("Failed to register service node %s because the collateral could not be found in the wallet.\n", snode.alias);
+            }
+            // If we are a servicenode that's active try and register with the network from cache
+            if (smgr.hasActiveSn()) {
+                const auto & activesn = smgr.getActiveSn();
+                auto snode = smgr.getSn(activesn.key.GetPubKey());
+                // Try and load snode registration from disk only if snode wasn't recently registered above
+                // to avoid overwriting state.
+                if (snode.isNull() && !smgr.loadSnRegistrationFromDisk(snode))
+                    LogPrintf("Service node auto-registration failed for %s\n", activesn.alias);
+                // Send service ping if snode is registered
+                if (!snode.isNull() && !smgr.sendPing(XROUTER_PROTOCOL_VERSION, xapp.myServicesJSON(), g_connman.get()))
+                    LogPrintf("Service node ping failed after registration for %s\n", activesn.alias);
+            }
+        }
+
+        // Servicenode validation interface
+        RegisterValidationInterface(&smgr);
+    }
+#endif
+
     uiInterface.InitMessage(_("Done loading").translated);
 
     for (const auto& client : node.chain_clients) {

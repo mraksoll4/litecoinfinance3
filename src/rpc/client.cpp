@@ -172,6 +172,49 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "createwallet", 4, "avoid_reuse"},
     { "getnodeaddresses", 0, "count"},
     { "stop", 0, "wait" },
+    { "servicenodecreateinputs", 1, "nodecount" },
+    { "servicenodecreateinputs", 2, "inputsize" },
+    { "dxGetOrderHistory", 2, "arg2" },
+    { "dxGetOrderHistory", 3, "arg3" },
+    { "dxGetOrderHistory", 4, "arg4" },
+    { "dxGetOrderHistory", 5, "arg5" },
+    { "dxGetOrderHistory", 6, "arg6" },
+    { "dxGetOrderHistory", 7, "arg7" },
+    { "dxGetOrderHistory", 8, "arg8" },
+    { "dxGetOrderBook", 0, "arg0" },
+    { "dxGetOrderBook", 3, "arg3" },
+    { "dxGetOrderBook", 4, "arg4" },
+    { "dxFlushCancelledOrders", 0, "arg0" },
+    { "dxFlushCancelledOrders", 1, "arg1" },
+    { "gettradingdata", 0, "arg0" },
+    { "gettradingdata", 1, "arg1" },
+    { "dxGetTradingData", 0, "arg0" },
+    { "dxGetTradingData", 1, "arg1" },
+    { "dxSplitAddress", 3, "include_fees" },
+    { "dxSplitAddress", 4, "show_rawtx" },
+    { "dxSplitAddress", 5, "submit" },
+    { "dxSplitInputs", 3, "include_fees" },
+    { "dxSplitInputs", 4, "show_rawtx" },
+    { "dxSplitInputs", 5, "submit" },
+    { "dxSplitInputs", 6, "utxos" },
+    { "dxGetUtxos", 1, "include_used" },
+    { "xrGetBlockCount",1, "arg1" },
+    { "xrGetBlockHash", 2, "arg2" },
+    { "xrGetBlock", 2, "arg2" },
+    { "xrGetBlocks", 2, "arg2" },
+    { "xrGetTransaction", 2, "arg2" },
+    { "xrGetTransactions", 2, "arg2" },
+    { "xrDecodeRawTransaction", 2, "arg2" },
+    { "xrSendTransaction", 2, "arg2" },
+    { "xrServiceConsensus", 0, "arg0" },
+    { "xrUpdateConfigs", 0, "arg0" },
+    { "xrGetBalance", 2, "arg2" },
+    { "xrGetTxBloomFilter", 2, "arg2" },
+    { "xrGetTxBloomFilter", 3, "arg3" },
+    { "xrGetBlockAtTime", 1, "arg1" },
+    { "xrGetBlockAtTime", 2, "arg2" },
+    { "xrConnect", 1, "arg1" },
+    { "xrUpdateNetworkServices", 0, "arg1" },
 };
 // clang-format on
 
@@ -185,10 +228,10 @@ public:
     CRPCConvertTable();
 
     bool convert(const std::string& method, int idx) {
-        return (members.count(std::make_pair(method, idx)) > 0);
+        return (members.count(std::make_pair(lowercase(method), idx)) > 0);
     }
     bool convert(const std::string& method, const std::string& name) {
-        return (membersByName.count(std::make_pair(method, name)) > 0);
+        return (membersByName.count(std::make_pair(lowercase(method), name)) > 0);
     }
 };
 
@@ -198,9 +241,9 @@ CRPCConvertTable::CRPCConvertTable()
         (sizeof(vRPCConvertParams) / sizeof(vRPCConvertParams[0]));
 
     for (unsigned int i = 0; i < n_elem; i++) {
-        members.insert(std::make_pair(vRPCConvertParams[i].methodName,
+        members.insert(std::make_pair(lowercase(vRPCConvertParams[i].methodName),
                                       vRPCConvertParams[i].paramIdx));
-        membersByName.insert(std::make_pair(vRPCConvertParams[i].methodName,
+        membersByName.insert(std::make_pair(lowercase(vRPCConvertParams[i].methodName),
                                             vRPCConvertParams[i].paramName));
     }
 }

@@ -201,6 +201,7 @@ public:
     bool GetUseAddrmanOutgoing() const { return m_use_addrman_outgoing; };
     void SetNetworkActive(bool active);
     void OpenNetworkConnection(const CAddress& addrConnect, bool fCountFailure, CSemaphoreGrant *grantOutbound = nullptr, const char *strDest = nullptr, bool fOneShot = false, bool fFeeler = false, bool manual_connection = false, bool block_relay_only = false);
+    CNode* OpenXRouterConnection(const CAddress & addrConnect, const char *pszDest);
     bool CheckIncomingNonce(uint64_t nonce);
 
     bool ForNode(NodeId id, std::function<bool(CNode* pnode)> func);
@@ -327,6 +328,9 @@ public:
         Variable intervals will result in privacy decrease.
     */
     int64_t PoissonNextSendInbound(int64_t now, int average_interval_seconds);
+
+    /** Calculate mean of connected nodes block heights */
+    bool StoreConnectedNodesBlockHeights(const int latestChainHeight, double & meanBlockHeightConnectedNodes, int & estimatedConnectedNodes);
 
     void SetAsmap(std::vector<bool> asmap) { addrman.m_asmap = std::move(asmap); }
 
@@ -477,6 +481,9 @@ private:
     std::atomic_bool m_try_another_outbound_peer;
 
     std::atomic<int64_t> m_next_send_inv_to_incoming{0};
+
+    /** Used for info purposes, stores the last lookup time of the mean block height across connected nodes */
+    std::atomic<int64_t> lastLookupTimeBlockHeights{0};
 
     friend struct CConnmanTest;
     friend struct ConnmanTestMsg;
@@ -864,6 +871,8 @@ public:
     ~CNode();
     CNode(const CNode&) = delete;
     CNode& operator=(const CNode&) = delete;
+
+    std::atomic<bool> fXRouter{false};
 
 private:
     const NodeId id;

@@ -22,10 +22,14 @@
 #include <random.h>
 #include <reverse_iterator.h>
 #include <scheduler.h>
+#include <servicenode/servicenodemgr.h>
 #include <tinyformat.h>
 #include <txmempool.h>
 #include <util/system.h>
 #include <util/strencodings.h>
+
+#include <xbridge/xbridgeapp.h>
+#include <xrouter/xrouterapp.h>
 
 #include <memory>
 #include <typeinfo>
@@ -410,6 +414,8 @@ static void UpdatePreferredDownload(CNode* node, CNodeState* state) EXCLUSIVE_LO
 
     // Whether this node should be marked as a preferred download node.
     state->fPreferredDownload = (!node->fInbound || node->HasPermission(PF_NOBAN)) && !node->fOneShot && !node->fClient;
+    if (node->fXRouter)
+        state->fPreferredDownload = false;
 
     nPreferredDownload += state->fPreferredDownload;
 }
@@ -429,7 +435,7 @@ static void PushNodeVersion(CNode *pnode, CConnman* connman, int64_t nTime)
     CAddress addrMe = CAddress(CService(), nLocalNodeServices);
 
     connman->PushMessage(pnode, CNetMsgMaker(INIT_PROTO_VERSION).Make(NetMsgType::VERSION, PROTOCOL_VERSION, (uint64_t)nLocalNodeServices, nTime, addrYou, addrMe,
-            nonce, strSubVersion, nNodeStartingHeight, ::g_relay_txes && pnode->m_tx_relay != nullptr));
+            nonce, strSubVersion, nNodeStartingHeight, ::g_relay_txes && pnode->m_tx_relay != nullptr, static_cast<bool>(pnode->fXRouter)));
 
     if (fLogIPs) {
         LogPrint(BCLog::NET, "send version message: version %d, blocks=%d, us=%s, them=%s, peer=%d\n", PROTOCOL_VERSION, nNodeStartingHeight, addrMe.ToString(), addrYou.ToString(), nodeid);
@@ -1222,7 +1228,7 @@ void PeerLogicValidation::NewPoWValidBlock(const CBlockIndex *pindex, const std:
         fWitnessesPresentInMostRecentCompactBlock = fWitnessEnabled;
     }
 
-    connman->ForEachNode([this, &pcmpctblock, pindex, &msgMaker, fWitnessEnabled, &hashBlock](CNode* pnode) {
+    connman->ForEachNode([this, &pcmpctblock, &pblock, pindex, &msgMaker, fWitnessEnabled, &hashBlock](CNode* pnode) {
         AssertLockHeld(cs_main);
 
         // TODO: Avoid the repeated-serialization here
@@ -1969,9 +1975,11 @@ bool ProcessMessage(CNode* pfrom, const std::string& msg_type, CDataStream& vRec
         }
         if (!pfrom->fInbound && !pfrom->fFeeler && !pfrom->m_manual_connection && !HasAllDesirableServiceFlags(nServices))
         {
+          if (!pfrom->fXRouter) { // do not reject xrouter peers
             LogPrint(BCLog::NET, "peer=%d does not offer the expected services (%08x offered, %08x expected); disconnecting\n", pfrom->GetId(), nServices, GetDesirableServiceFlags(nServices));
             pfrom->fDisconnect = true;
             return false;
+          }
         }
 
         if (nVersion < MIN_PEER_PROTO_VERSION) {
@@ -1993,6 +2001,12 @@ bool ProcessMessage(CNode* pfrom, const std::string& msg_type, CDataStream& vRec
         }
         if (!vRecv.empty())
             vRecv >> fRelay;
+        // XRouter node
+        bool fXRouter{false};
+        if (!vRecv.empty())
+            vRecv >> fXRouter;
+        pfrom->fXRouter = fXRouter;
+
         // Disconnect if we connected to ourself
         if (pfrom->fInbound && !connman->CheckIncomingNonce(nNonce))
         {
@@ -2068,8 +2082,10 @@ bool ProcessMessage(CNode* pfrom, const std::string& msg_type, CDataStream& vRec
             // Get recent addresses
             if (pfrom->fOneShot || pfrom->nVersion >= CADDR_TIME_VERSION || connman->GetAddressCount() < 1000)
             {
+            if (!pfrom->fXRouter) { // if not xrouter peer advertise addresses
                 connman->PushMessage(pfrom, CNetMsgMaker(nSendVersion).Make(NetMsgType::GETADDR));
                 pfrom->fGetAddr = true;
+            }
             }
             connman->MarkAddressGood(pfrom->addr);
         }
@@ -2146,6 +2162,12 @@ bool ProcessMessage(CNode* pfrom, const std::string& msg_type, CDataStream& vRec
             connman->PushMessage(pfrom, msgMaker.Make(NetMsgType::SENDCMPCT, fAnnounceUsingCMPCTBLOCK, nCMPCTBLOCKVersion));
         }
         pfrom->fSuccessfullyConnected = true;
+        // Used for logging purposes, update the mean block height across connected nodes
+        double meanHeights; int nodeCount;
+        if (connman->StoreConnectedNodesBlockHeights(chainActive.Height(), meanHeights, nodeCount)) {
+            meanBlockHeightConnectedNodes = meanHeights;
+            estimatedConnectedNodes = nodeCount;
+        }
         return true;
     }
 
@@ -3098,6 +3120,12 @@ bool ProcessMessage(CNode* pfrom, const std::string& msg_type, CDataStream& vRec
             // return very quickly.
             connman->PushMessage(pfrom, msgMaker.Make(NetMsgType::PONG, nonce));
         }
+        // Used for logging purposes, update the mean block height across connected nodes
+        double meanHeights; int nodeCount;
+        if (connman->StoreConnectedNodesBlockHeights(chainActive.Height(), meanHeights, nodeCount)) {
+            meanBlockHeightConnectedNodes = meanHeights;
+            estimatedConnectedNodes = nodeCount;
+        }
         return true;
     }
 
@@ -3245,6 +3273,169 @@ bool ProcessMessage(CNode* pfrom, const std::string& msg_type, CDataStream& vRec
                     }
                     state->m_tx_download.m_tx_in_flight.erase(in_flight_it);
                     state->m_tx_download.m_tx_announced.erase(inv.hash);
+                }
+            }
+        }
+        return true;
+    }
+
+    // Servicenode related packet handling
+    auto & smgr = sn::ServiceNodeMgr::instance();
+    auto & xapp = xbridge::App::instance();
+
+    if (strCommand == NetMsgType::XBRIDGE) { // handle xbridge packets
+        std::vector<unsigned char> raw;
+        vRecv >> raw;
+        auto rawcopy = raw;
+
+        // Top-level validation checks
+        if (raw.size() < (20 + sizeof(time_t))) {
+            // bad packet, small penalty (don't relay)
+            LOCK(cs_main);
+            Misbehaving(pfrom->GetId(), 10);
+            return true;
+        }
+
+        int dos = 0;
+
+        try {
+            // Process xbridge packet
+            if (!smgr.processXBridge(raw))
+                return true;
+
+            CValidationState state;
+
+            // Pass packet to XBridge
+            if (xapp.isEnabled()) {
+                static std::vector<unsigned char> zero(20, 0);
+                std::vector<unsigned char> addr(raw.begin(), raw.begin()+20);
+                raw.erase(raw.begin(), raw.begin()+20); // remove addr from raw
+                raw.erase(raw.begin(), raw.begin()+sizeof(uint64_t)); // remove timestamp from raw
+                if (addr != zero)
+                    xapp.onMessageReceived(addr, raw, state);
+                else
+                    xapp.onBroadcastReceived(raw, state);
+
+                if (state.IsInvalid(dos)) {
+                    LogPrint(BCLog::XBRIDGE, "invalid xbridge packet from peer=%d %s : %s\n", pfrom->GetId(),
+                            pfrom->cleanSubVer, state.GetRejectReason());
+                    if (dos > 0) {
+                        LOCK(cs_main);
+                        Misbehaving(pfrom->GetId(), dos);
+                    }
+                }
+                else if (state.IsError()) {
+                    LogPrint(BCLog::XBRIDGE, "xbridge packet from peer=%d %s processed with error: %s\n",
+                             pfrom->GetId(), pfrom->cleanSubVer,
+                             state.GetRejectReason());
+                }
+            }
+        } catch (...) {
+            LogPrint(BCLog::XBRIDGE, "Fatal XBridge error detected\n");
+        }
+
+        // Relay xbridge packets only if state is good
+        if (dos <= 0) {
+            connman->ForEachNode([&](CNode *pnode) {
+                if (!pnode->fSuccessfullyConnected)
+                    return;
+                connman->PushMessage(pnode, msgMaker.Make(NetMsgType::XBRIDGE, rawcopy));
+            });
+        }
+
+        return true;
+    }
+
+    if (strCommand == NetMsgType::SNREGISTER) { // handle snode registrations
+        sn::ServiceNode snode;
+        try {
+            if (!smgr.processRegistration(vRecv, snode))
+                return true;
+        } catch (std::exception & e) {
+            LOCK(cs_main);
+            LogPrint(BCLog::NET, "servicenode packet from peer=%d %s processed with error: %s\n",
+                     pfrom->GetId(), pfrom->cleanSubVer, std::string(e.what()));
+            // bad packet, small penalty
+            Misbehaving(pfrom->GetId(), 10);
+            return true;
+        }
+
+        // Send the ping out if we are a snode waiting for registration
+        if (smgr.hasActiveSn() && smgr.getActiveSn().keyId() == snode.getSnodePubKey().GetID()) {
+            sn::ServiceNodeMgr::writeSnRegistration(snode);
+            if (!smgr.sendPing(XROUTER_PROTOCOL_VERSION, xapp.myServicesJSON(), connman))
+                LogPrintf("Service node ping failed after registration for %s\n", smgr.getActiveSn().alias);
+        }
+
+        // Relay packets
+        connman->ForEachNode([&](CNode* pnode) {
+            if (pfrom == pnode)
+                return;
+            connman->PushMessage(pnode, msgMaker.Make(NetMsgType::SNREGISTER, snode));
+        });
+
+        return true;
+    }
+
+    if (strCommand == NetMsgType::SNPING || strCommand == NetMsgType::SNLISTPING) { // handle snode pings
+        sn::ServiceNodePing ping;
+        try {
+            if (!smgr.processPing(vRecv, ping))
+                return true;
+        } catch (std::exception & e) {
+            LOCK(cs_main);
+            LogPrint(BCLog::NET, "servicenode packet from peer=%d %s processed with error: %s\n",
+                     pfrom->GetId(), pfrom->cleanSubVer, std::string(e.what()));
+            // bad packet, small penalty
+            Misbehaving(pfrom->GetId(), 10);
+            return true;
+        }
+
+        // Relay packets only on SNPING (not SNLISTPING)
+        if (strCommand == NetMsgType::SNPING) {
+            connman->ForEachNode([&](CNode* pnode) {
+                if (pfrom == pnode)
+                    return;
+                connman->PushMessage(pnode, msgMaker.Make(NetMsgType::SNPING, ping));
+            });
+        }
+
+        bool isReady = xrouter::App::isEnabled() && xrouter::App::instance().isReady();
+        if (isReady)
+            xrouter::App::instance().processConfigMessage(ping.getSnode());
+
+        return true;
+    }
+
+    if (strCommand == NetMsgType::SNLIST) { // handle snode list requests
+        const auto & snlist = smgr.list();
+        for (const auto & snode : snlist) {
+            const auto & ping = smgr.getPing(snode.getSnodePubKey());
+            if (!ping.isNull())
+                connman->PushMessage(pfrom, msgMaker.Make(NetMsgType::SNLISTPING, ping));
+        }
+
+        return true;
+    }
+
+    if (strCommand == NetMsgType::XROUTER) { // handle xrouter packets
+        bool isReady = xrouter::App::isEnabled() && xrouter::App::instance().isReady();
+        if (isReady) {
+            std::vector<unsigned char> raw;
+            vRecv >> raw;
+            if (raw.size() < (20 + sizeof(time_t))) {
+                // bad packet, small penalty
+                LOCK(cs_main);
+                Misbehaving(pfrom->GetId(), 10);
+            } else {
+                try {
+                    xrouter::App::instance().onMessageReceived(pfrom, raw);
+                } catch (std::exception & e) {
+                    LOCK(cs_main);
+                    LogPrint(BCLog::XROUTER, "xrouter packet from peer=%d %s processed with error: %s\n",
+                             pfrom->GetId(), pfrom->cleanSubVer, std::string(e.what()));
+                    // bad packet, small penalty
+                    Misbehaving(pfrom->GetId(), 10);
                 }
             }
         }
@@ -3586,7 +3777,8 @@ bool PeerLogicValidation::SendMessages(CNode* pto)
             return true;
 
         if (MaybeDiscourageAndDisconnect(pto)) return true;
-
+        if (pto->fXRouter) // do not process non-xrouter messages from xrouter peers
+            return true;
         CNodeState &state = *State(pto->GetId());
 
         // Address refresh broadcast

@@ -112,6 +112,16 @@ AC_ARG_ENABLE([wallet],
   [enable_wallet=$enableval],
   [enable_wallet=yes])
 
+AC_ARG_ENABLE([xrouterclient],
+  [AS_HELP_STRING([--enable-xrouterclient],
+  [enable xrouterclient (default is no)])],
+  [use_xrouterclient=$enableval],
+  [use_xrouterclient=no])
+
+if test "x$use_xrouterclient" = xyes; then
+  AC_DEFINE(USE_XROUTERCLIENT, 1, [Define this symbol to build for xrouter client use])
+fi
+
 AC_ARG_WITH([miniupnpc],
   [AS_HELP_STRING([--with-miniupnpc],
   [enable UPNP (default is yes if libminiupnpc is found)])],
@@ -1161,6 +1171,7 @@ fi
 AX_BOOST_SYSTEM
 AX_BOOST_FILESYSTEM
 AX_BOOST_THREAD
+AX_BOOST_DATE_TIME
 
 dnl Boost 1.56 through 1.62 allow using std::atomic instead of its own atomic
 dnl counter implementations. In 1.63 and later the std::atomic approach is default.
@@ -1227,7 +1238,7 @@ fi
 
 if test x$use_boost = xyes; then
 
-BOOST_LIBS="$BOOST_LDFLAGS $BOOST_SYSTEM_LIB $BOOST_FILESYSTEM_LIB $BOOST_THREAD_LIB"
+BOOST_LIBS="$BOOST_LDFLAGS $BOOST_SYSTEM_LIB $BOOST_FILESYSTEM_LIB $BOOST_THREAD_LIB $BOOST_DATE_TIME_LIB"
 
 
 dnl If boost (prior to 1.57) was built without c++11, it emulated scoped enums
@@ -1277,8 +1288,17 @@ if test x$use_pkgconfig = xyes; then
       if test x$use_qr != xno; then
         BITCOIN_QT_CHECK([PKG_CHECK_MODULES([QR], [libqrencode], [have_qrencode=yes], [have_qrencode=no])])
       fi
-      if test x$build_bitcoin_cli$build_bitcoind$bitcoin_enable_qt$use_tests$use_bench != xnonononono; then
-        PKG_CHECK_MODULES([EVENT], [libevent >= 2.0.21],, [AC_MSG_ERROR(libevent version 2.0.21 or greater not found.)])
+      if test x$build_bitcoin_cli$build_bitcoind$bitcoin_enable_qt$use_tests$use_bench$use_xrouterclient != xnononononono; then
+        PKG_CHECK_MODULES([EVENT], [libevent >= 2.0.21],, [AC_MSG_ERROR(libevent version 2.0.21 or greater not found.)],[libevent_openssl],
+                  [AC_DEFINE([ENABLE_EVENTSSL],[1],[Define to 1 to enable xrouter ssl])],
+                  [AC_DEFINE([ENABLE_EVENTSSL],[0],[Define to 1 to enable xrouter ssl])
+                   AC_MSG_WARN([libevent_openssl not found, disabling])
+                   use_xrouterssl=no])
+        if test x$use_xrouterssl != xno; then
+            PKG_CHECK_MODULES([EVENT], [libevent_openssl libevent libssl],, [AC_MSG_ERROR(libevent not found.)])
+        else
+            PKG_CHECK_MODULES([EVENT], [libevent],, [AC_MSG_ERROR(libevent not found.)])
+        fi
         if test x$TARGET_OS != xwindows; then
           PKG_CHECK_MODULES([EVENT_PTHREADS], [libevent_pthreads >= 2.0.21],, [AC_MSG_ERROR(libevent_pthreads version 2.0.21 or greater not found.)])
         fi
@@ -1302,9 +1322,17 @@ else
   AC_CHECK_HEADER([openssl/ssl.h],, AC_MSG_ERROR(libssl headers missing),)
   AC_CHECK_LIB([ssl],         [main],SSL_LIBS=-lssl, AC_MSG_ERROR(libssl missing))
   
-  if test x$build_bitcoin_cli$build_bitcoind$bitcoin_enable_qt$use_tests$use_bench != xnonononono; then
+  if test x$build_bitcoin_cli$build_bitcoind$bitcoin_enable_qt$use_tests$use_bench$use_xrouterclient != xnononononono; then
     AC_CHECK_HEADER([event2/event.h],, AC_MSG_ERROR(libevent headers missing),)
+    AC_CHECK_HEADER([event2/bufferevent_ssl.h],,
+        [AC_DEFINE([ENABLE_EVENTSSL],[1],[Define to 1 to enable xrouter ssl])],
+        [AC_DEFINE([ENABLE_EVENTSSL],[0],[Define to 1 to enable xrouter ssl])
+         AC_MSG_WARN([libevent_openssl headers not found, disabling])
+         use_xrouterssl=no])
     AC_CHECK_LIB([event],[main],EVENT_LIBS=-levent,AC_MSG_ERROR(libevent missing))
+    if test x$use_xrouterssl != xno; then
+        AC_CHECK_LIB([event_openssl],[main],[EVENT_LIBS="-levent_openssl $EVENT_LIBS $SSL_LIBS"],AC_MSG_ERROR(libevent_openssl missing))
+    fi
     if test x$TARGET_OS != xwindows; then
       AC_CHECK_LIB([event_pthreads],[main],EVENT_PTHREADS_LIBS=-levent_pthreads,AC_MSG_ERROR(libevent_pthreads missing))
     fi
@@ -1567,6 +1595,7 @@ AM_CONDITIONAL([ENABLE_SHANI],[test x$enable_shani = xyes])
 AM_CONDITIONAL([ENABLE_ARM_CRC],[test x$enable_arm_crc = xyes])
 AM_CONDITIONAL([USE_ASM],[test x$use_asm = xyes])
 AM_CONDITIONAL([WORDS_BIGENDIAN],[test x$ac_cv_c_bigendian = xyes])
+AM_CONDITIONAL([USE_XROUTERCLIENT],[test x$use_xrouterclient = xyes])
 
 AC_DEFINE(CLIENT_VERSION_MAJOR, _CLIENT_VERSION_MAJOR, [Major version])
 AC_DEFINE(CLIENT_VERSION_MINOR, _CLIENT_VERSION_MINOR, [Minor version])
@@ -1695,6 +1724,7 @@ echo "  with test     = $use_tests"
 if test x$use_tests != xno; then
     echo "    with fuzz   = $enable_fuzz"
 fi
+echo "  xrouterclient = $use_xrouterclient"
 echo "  with bench    = $use_bench"
 echo "  with upnp     = $use_upnp"
 echo "  use asm       = $use_asm"

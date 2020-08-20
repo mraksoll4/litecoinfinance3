@@ -25,6 +25,8 @@
 #include <validation.h>
 #include <version.h>
 #include <warnings.h>
+#include <xbridge/version.h>
+#include <xrouter/version.h>
 
 #include <univalue.h>
 
@@ -468,6 +470,8 @@ static UniValue getnetworkinfo(const JSONRPCRequest& request)
                         {RPCResult::Type::NUM, "version", "the server version"},
                         {RPCResult::Type::STR, "subversion", "the server subversion string"},
                         {RPCResult::Type::NUM, "protocolversion", "the protocol version"},
+						{RPCResult::Type::NUM, "xbridgeprotocolversion", "the XBridge protocol version"},
+						{RPCResult::Type::NUM, "xrouterprotocolversion", "the XRouter protocol version"},
                         {RPCResult::Type::STR_HEX, "localservices", "the services we offer to the network"},
                         {RPCResult::Type::ARR, "localservicesnames", "the services we offer to the network, in human-readable form",
                         {
@@ -513,6 +517,8 @@ static UniValue getnetworkinfo(const JSONRPCRequest& request)
     obj.pushKV("version",       CLIENT_VERSION);
     obj.pushKV("subversion",    strSubVersion);
     obj.pushKV("protocolversion",PROTOCOL_VERSION);
+    obj.pushKV("xbridgeprotocolversion", static_cast<int64_t>(XBRIDGE_PROTOCOL_VERSION));
+    obj.pushKV("xrouterprotocolversion", static_cast<int64_t>(XROUTER_PROTOCOL_VERSION));
     if (g_rpc_node->connman) {
         ServiceFlags services = g_rpc_node->connman->GetLocalServices();
         obj.pushKV("localservices", strprintf("%016x", services));

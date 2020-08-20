@@ -6,6 +6,8 @@
 #ifndef BITCOIN_RPC_PROTOCOL_H
 #define BITCOIN_RPC_PROTOCOL_H
 
+std::string lowercase(std::string s);
+
 //! HTTP status codes
 enum HTTPStatusCode
 {

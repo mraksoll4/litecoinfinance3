@@ -1785,6 +1785,7 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect)
             LOCK(cs_vNodes);
             for (const CNode* pnode : vNodes) {
                 if (!pnode->fInbound && !pnode->m_manual_connection) {
+                if (!pnode->fXRouter) { // do not count xrouter peers
                     // Netgroups for inbound and addnode peers are not excluded because our goal here
                     // is to not use multiple of our limited outbound slots on a single netgroup
                     // but inbound and addnode peers do not use our outbound slots.  Inbound peers
@@ -1797,6 +1798,7 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect)
                         nOutboundFullRelay++;
                     }
                 }
+				}
             }
         }
 
@@ -2287,6 +2289,7 @@ bool CConnman::Start(CScheduler& scheduler, const Options& connOptions)
     }
     // Load addresses from peers.dat
     int64_t nStart = GetTimeMillis();
+#ifndef USE_XROUTERCLIENT
     {
         CAddrDB adb;
         if (adb.Read(addrman))
@@ -2297,10 +2300,13 @@ bool CConnman::Start(CScheduler& scheduler, const Options& connOptions)
             DumpAddresses();
         }
     }
+#endif // USE_XROUTERCLIENT
 
     uiInterface.InitMessage(_("Starting network threads...").translated);
 
+#ifndef USE_XROUTERCLIENT
     fAddressesInitialized = true;
+#endif // USE_XROUTERCLIENT
 
     if (semOutbound == nullptr) {
         // initialize semaphore
@@ -2813,4 +2819,64 @@ uint64_t CConnman::CalculateKeyedNetGroup(const CAddress& ad) const
     std::vector<unsigned char> vchNetGroup(ad.GetGroup(addrman.m_asmap));
 
     return GetDeterministicRandomizer(RANDOMIZER_ID_NETGROUP).Write(vchNetGroup.data(), vchNetGroup.size()).Finalize();
+}
+
+bool CConnman::StoreConnectedNodesBlockHeights(const int latestChainHeight, double & meanBlockHeightConnectedNodes, int & estimatedConnectedNodes) {
+    auto currentTime = GetAdjustedTime();
+
+    // Get estimated elapsed time since last progress update, if previous check more than 120 seconds
+    // ago then proceed.
+    auto elapsedTime = currentTime-lastLookupTimeBlockHeights;
+    if (elapsedTime < 120)
+        return false;
+
+    // Set node time to current time
+    lastLookupTimeBlockHeights = currentTime;
+
+    int nodeBlocks = 0;
+    int nodeCount = 0;
+    ForEachNode([latestChainHeight,&nodeBlocks,&nodeCount](CNode *pnode) {
+        // ignore bad nodes
+        if (!pnode->fSuccessfullyConnected || pnode->nStartingHeight <= 0)
+            return;
+        ++nodeCount;
+        nodeBlocks += pnode->nStartingHeight;
+    });
+
+    meanBlockHeightConnectedNodes = nodeCount == 0 ? 0.0 : static_cast<double>(nodeBlocks)/static_cast<double>(nodeCount);
+    estimatedConnectedNodes = nodeCount;
+
+    return true;
+}
+
+CNode* CConnman::OpenXRouterConnection(const CAddress & addrConnect, const char *pszDest) {
+    if (interruptNet)
+        return nullptr;
+    if (!fNetworkActive)
+        return nullptr;
+    if (IsLocal(addrConnect))
+        return nullptr; // do not connect to self
+    if (m_banman && m_banman->IsBanned(addrConnect))
+        return nullptr; // do not connect to banned nodes
+
+    CNode *pnode = nullptr;
+    pnode = FindNode(static_cast<CNetAddr>(addrConnect));
+    if (pnode)
+        return pnode; // If node is already connected return
+    pnode = FindNode(addrConnect.ToStringIPPort());
+    if (pnode)
+        return pnode; // If node is already connected return
+
+    pnode = ConnectNode(addrConnect, pszDest, false, true);
+    if (!pnode)
+        return nullptr;
+    pnode->fXRouter = true;
+
+    m_msgproc->InitializeNode(pnode);
+    {
+        LOCK(cs_vNodes);
+        vNodes.push_back(pnode);
+    }
+
+    return pnode;
 }

@@ -814,4 +814,36 @@ inline bool IsBlockPruned(const CBlockIndex* pblockindex)
     return (fHavePruned && !(pblockindex->nStatus & BLOCK_HAVE_DATA) && pblockindex->nTx > 0);
 }
 
+
+/** Determining the block sync progress */
+double SyncProgress(const int activeChainHeight);
+
+extern std::atomic<double> meanBlockHeightConnectedNodes;
+extern std::atomic<int> estimatedConnectedNodes;
+
+/**
+ * Pubkey used to sign the stake input must match the block signature.
+ * @param stakeScript
+ * @return
+ */
+
+bool GetTxFunc(const COutPoint & out, CTransactionRef & tx);
+
+/**
+ * Returns true if the specified block is found in the chain tip.
+ * @param blockNumber
+ * @param blockHash
+ * @param checkStale
+ * @return bool
+ */
+static const int SNODE_STALE_BLOCKS = 10; // number of blocks to allow before a snode is marked "stale"
+bool IsServiceNodeBlockValidFunc(const uint64_t & blockNumber, const uint256 & blockHash, const bool & checkStale=true);
+
+/**
+ * Return the chain tip.
+ * @return
+ */
+extern int GetChainTipHeight();
+
+
 #endif // BITCOIN_VALIDATION_H

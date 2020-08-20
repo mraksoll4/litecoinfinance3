@@ -248,8 +248,19 @@ BITCOIN_TESTS =\
   test/validationinterface_tests.cpp \
   test/versionbits_tests.cpp
 
+# Blocknet XRouter
+BITCOIN_TESTS += \
+  test/xrouter_tests.cpp
+BITCOIN_TEST_SUITE += \
+  test/xrouter_tests.h
+
+# Blocknet XBridge
+BITCOIN_TESTS += \
+  test/xbridge_tests.cpp
+
 if ENABLE_WALLET
 BITCOIN_TESTS += \
+  test/servicenode_tests.cpp \
   wallet/test/db_tests.cpp \
   wallet/test/psbt_wallet_tests.cpp \
   wallet/test/wallet_tests.cpp \
@@ -276,6 +287,11 @@ endif
 test_test_litecoinfinance_LDADD += $(LIBBITCOIN_SERVER) $(LIBBITCOIN_CLI) $(LIBBITCOIN_COMMON) $(LIBBITCOIN_UTIL) $(LIBBITCOIN_CONSENSUS) $(LIBBITCOIN_CRYPTO) $(LIBUNIVALUE) $(CRYPTO_LIBS) \
   $(LIBLEVELDB) $(LIBLEVELDB_SSE42) $(LIBMEMENV) $(BOOST_LIBS) $(BOOST_UNIT_TEST_FRAMEWORK_LIB) $(LIBSECP256K1) $(EVENT_LIBS) $(EVENT_PTHREADS_LIBS)
 test_test_litecoinfinance_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+
+# Blocknet XBridge
+test_test_litecoinfinance_LDADD += $(LIBXBRIDGE)
+# Blocknet XRouter
+test_test_litecoinfinance_LDADD += $(LIBXROUTER) $(EVENT_LIBS) $(SSL_LIBS)
 
 test_test_litecoinfinance_LDADD += $(BDB_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS)
 test_test_litecoinfinance_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) -static

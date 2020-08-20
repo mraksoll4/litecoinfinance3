@@ -82,6 +82,8 @@ struct Params {
     int64_t DifficultyAdjustmentInterval() const { return nPowTargetTimespan / nPowTargetSpacing; }
     uint256 nMinimumChainWork;
     uint256 defaultAssumeValid;
+	/** Service node parameters */
+    int snMaxCollateralCount{10}; // max utxos for use with service node collateral
 };
 } // namespace Consensus
 

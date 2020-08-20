@@ -32,6 +32,8 @@ LIBBITCOIN_UTIL=libbitcoin_util.a
 LIBBITCOIN_CRYPTO_BASE=crypto/libbitcoin_crypto_base.a
 LIBBITCOINQT=qt/libbitcoinqt.a
 LIBSECP256K1=secp256k1/libsecp256k1.la
+LIBXBRIDGE=xbridge/libxbridge.a
+LIBXROUTER=xrouter/libxrouter.a
 
 if ENABLE_ZMQ
 LIBBITCOIN_ZMQ=libbitcoin_zmq.a
@@ -73,6 +75,14 @@ EXTRA_LIBRARIES += \
   $(LIBBITCOIN_WALLET) \
   $(LIBBITCOIN_WALLET_TOOL) \
   $(LIBBITCOIN_ZMQ)
+
+# Blocknet XBridge
+EXTRA_LIBRARIES += \
+  $(LIBXBRIDGE)
+
+# Blocknet XRouter
+EXTRA_LIBRARIES += \
+  $(LIBXROUTER)
 
 lib_LTLIBRARIES = $(LIBBITCOINCONSENSUS)
 
@@ -193,6 +203,8 @@ BITCOIN_CORE_H = \
   script/sign.h \
   script/signingprovider.h \
   script/standard.h \
+  servicenode/servicenode.h \
+  servicenode/servicenodemgr.h \
   shutdown.h \
   streams.h \
   support/allocators/secure.h \
@@ -255,6 +267,79 @@ BITCOIN_CORE_H = \
   zmq/zmqpublishnotifier.h \
   zmq/zmqrpc.h
 
+# Blocknet requires the json spirit library
+JSON_H = \
+  json/json_spirit.h \
+  json/json_spirit_error_position.h \
+  json/json_spirit_reader.h \
+  json/json_spirit_reader_template.h \
+  json/json_spirit_stream_reader.h \
+  json/json_spirit_utils.h \
+  json/json_spirit_value.h \
+  json/json_spirit_writer.h \
+  json/json_spirit_writer_template.h \
+  json/json_spirit_writer_options.h
+
+# Blocknet XBridge
+BITCOIN_CORE_H += \
+  xbridge/bitcoinrpcconnector.h \
+  xbridge/currency.h \
+  xbridge/currencypair.h \
+  xbridge/cashaddr/cashaddr.h \
+  xbridge/cashaddr/cashaddrenc.h \
+  xbridge/util/fastdelegate.h \
+  xbridge/util/logger.h \
+  xbridge/util/posixtimeconversion.h \
+  xbridge/util/settings.h \
+  xbridge/util/txlog.h \
+  xbridge/util/xassert.h \
+  xbridge/util/xbridgeerror.h \
+  xbridge/util/xseries.h \
+  xbridge/util/xutil.h \
+  xbridge/version.h \
+  xbridge/xbitcoinaddress.h \
+  xbridge/xbitcointransaction.h \
+  xbridge/xbridgeapp.h \
+  xbridge/xbridgecryptoproviderbtc.h \
+  xbridge/xbridgedb.h \
+  xbridge/xbridgedef.h \
+  xbridge/xbridgeexchange.h \
+  xbridge/xbridgepacket.h \
+  xbridge/xbridgerpc.h \
+  xbridge/xbridgesession.h \
+  xbridge/xbridgesessiondcr.h \
+  xbridge/xbridgetransaction.h \
+  xbridge/xbridgetransactiondescr.h \
+  xbridge/xbridgetransactionmember.h \
+  xbridge/xbridgewallet.h \
+  xbridge/xbridgewalletconnector.h \
+  xbridge/xbridgewalletconnectorbcd.h \
+  xbridge/xbridgewalletconnectorbch.h \
+  xbridge/xbridgewalletconnectorbtc.h \
+  xbridge/xbridgewalletconnectordgb.h \
+  xbridge/xbridgewalletconnectorbtg.h \
+  xbridge/xbridgewalletconnectordevault.h \
+  xbridge/xbridgewalletconnectorstealth.h \
+  xbridge/xuiconnector.h
+
+# Blocknet XRouter
+BITCOIN_CORE_H += \
+  xrouter/version.h \
+  xrouter/xrouterapp.h \
+  xrouter/xrouterclient.h \
+  xrouter/xrouterconnector.h \
+  xrouter/xrouterconnectorbtc.h \
+  xrouter/xrouterconnectoreth.h \
+  xrouter/xrouterdef.h \
+  xrouter/xroutererror.h \
+  xrouter/xrouterlogger.h \
+  xrouter/xrouterpacket.h \
+  xrouter/xrouterpeermgr.h \
+  xrouter/xrouterquerymgr.h \
+  xrouter/xrouterserver.h \
+  xrouter/xroutersettings.h \
+  xrouter/xroutersnodeconfig.h \
+  xrouter/xrouterutils.h
 
 obj/build.h: FORCE
 	@$(MKDIR_P) $(builddir)/obj
@@ -306,6 +391,7 @@ libbitcoin_server_a_SOURCES = \
   rpc/net.cpp \
   rpc/rawtransaction.cpp \
   rpc/server.cpp \
+  rpc/servicenode.cpp \
   script/sigcache.cpp \
   shutdown.cpp \
   timedata.cpp \
@@ -317,6 +403,9 @@ libbitcoin_server_a_SOURCES = \
   validationinterface.cpp \
   versionbits.cpp \
   $(BITCOIN_CORE_H)
+
+# Blocknet requires json spirit library
+libbitcoin_server_a_SOURCES += $(JSON_H)
 
 if ENABLE_WALLET
 libbitcoin_server_a_SOURCES += wallet/init.cpp
@@ -355,6 +444,8 @@ libbitcoin_wallet_a_SOURCES = \
   wallet/walletdb.cpp \
   wallet/walletutil.cpp \
   wallet/coinselection.cpp \
+  servicenode/servicenode.cpp \
+  servicenode/servicenodemgr.cpp \
   $(BITCOIN_CORE_H)
 
 libbitcoin_wallet_tool_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
@@ -494,6 +585,8 @@ libbitcoin_common_a_SOURCES = \
   script/sign.cpp \
   script/signingprovider.cpp \
   script/standard.cpp \
+  servicenode/servicenode.cpp \
+  servicenode/servicenodemgr.cpp \
   versionbitsinfo.cpp \
   warnings.cpp \
   $(BITCOIN_CORE_H)
@@ -538,6 +631,70 @@ libbitcoin_util_a_SOURCES = \
   util/url.cpp \
   $(BITCOIN_CORE_H)
 
+# xbridge: p2p atomic swap library
+xbridge_libxbridge_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+xbridge_libxbridge_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+xbridge_libxbridge_a_SOURCES = \
+  rpc/client.cpp \
+  xbridge/bitcoinrpcconnector.cpp \
+  xbridge/cashaddr/cashaddr.cpp \
+  xbridge/cashaddr/cashaddrenc.cpp \
+  xbridge/rpcxbridge.cpp \
+  xbridge/util/logger.cpp \
+  xbridge/util/posixtimeconversion.cpp \
+  xbridge/util/settings.cpp \
+  xbridge/util/txlog.cpp \
+  xbridge/util/xbridgeerror.cpp \
+  xbridge/util/xseries.cpp \
+  xbridge/util/xutil.cpp \
+  xbridge/xbitcoinaddress.cpp \
+  xbridge/xbitcointransaction.cpp \
+  xbridge/xbridgeapp.cpp \
+  xbridge/xbridgecryptoproviderbtc.cpp \
+  xbridge/xbridgedb.cpp \
+  xbridge/xbridgeexchange.cpp \
+  xbridge/xbridgepacket.cpp \
+  xbridge/xbridgerpc.cpp \
+  xbridge/xbridgesession.cpp \
+  xbridge/xbridgesessiondcr.cpp \
+  xbridge/xbridgetransaction.cpp \
+  xbridge/xbridgetransactiondescr.cpp \
+  xbridge/xbridgetransactionmember.cpp \
+  xbridge/xbridgewalletconnector.cpp \
+  xbridge/xbridgewalletconnectorbcd.cpp \
+  xbridge/xbridgewalletconnectorbch.cpp \
+  xbridge/xbridgewalletconnectorbtc.cpp \
+  xbridge/xbridgewalletconnectordgb.cpp \
+  xbridge/xbridgewalletconnectorbtg.cpp \
+  xbridge/xbridgewalletconnectordevault.cpp \
+  xbridge/xbridgewalletconnectorstealth.cpp \
+  $(JSON_H) \
+  $(BITCOIN_CORE_H)
+
+# xrouter: interoperability protocol
+xrouter_libxrouter_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+xrouter_libxrouter_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+xrouter_libxrouter_a_SOURCES = \
+  xrouter/rpcxrouter.cpp \
+  xrouter/utils-misc.cpp \
+  xrouter/utils-network.cpp \
+  xrouter/utils-payments.cpp \
+  xrouter/xrouterapp.cpp \
+  xrouter/xrouterclient.cpp \
+  xrouter/xrouterconnector.cpp \
+  xrouter/xrouterconnectorbtc.cpp \
+  xrouter/xrouterconnectoreth.cpp \
+  xrouter/xrouterlogger.cpp \
+  xrouter/xrouterpacket.cpp \
+  xrouter/xrouterpeermgr.cpp \
+  xrouter/xrouterquerymgr.cpp \
+  xrouter/xrouterserver.cpp \
+  xrouter/xroutersettings.cpp \
+  xrouter/xroutersnodeconfig.cpp \
+  servicenode/servicenodemgr.cpp \
+  $(JSON_H) \
+  $(BITCOIN_CORE_H)
+
 if GLIBC_BACK_COMPAT
 libbitcoin_util_a_SOURCES += compat/glibc_compat.cpp
 AM_LDFLAGS += $(COMPAT_LDFLAGS)
@@ -579,7 +736,13 @@ litecoinfinanced_LDADD = \
   $(LIBMEMENV) \
   $(LIBSECP256K1)
 
-litecoinfinanced_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS)
+# Blocknet XBridge
+litecoinfinanced_LDADD += $(LIBXBRIDGE)
+
+# Blocknet XRouter
+litecoinfinanced_LDADD += $(LIBXROUTER)
+
+litecoinfinanced_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(SSL_LIBS) $(ZMQ_LIBS)
 
 # bitcoin-cli binary #
 litecoinfinance_cli_SOURCES = bitcoin-cli.cpp
@@ -618,6 +781,7 @@ litecoinfinance_tx_LDADD = \
   $(LIBBITCOIN_CRYPTO) \
   $(LIBSECP256K1)
 
+
 litecoinfinance_tx_LDADD += $(BOOST_LIBS) $(CRYPTO_LIBS)
 #
 
@@ -644,6 +808,13 @@ litecoinfinance_wallet_LDADD = \
   $(LIBMEMENV) \
   $(LIBSECP256K1) \
   $(LIBUNIVALUE)
+  
+# Blocknet XBridge
+
+litecoinfinance_wallet_LDADD += $(LIBXBRIDGE)
+
+# Blocknet XRouter
+litecoinfinance_wallet_LDADD += $(LIBXROUTER) $(EVENT_LIBS) $(SSL_LIBS)
 
 litecoinfinance_wallet_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(CRYPTO_LIBS) $(SSL_CFLAGS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(ZMQ_LIBS)
 #
@@ -685,6 +856,9 @@ CLEANFILES += univalue/*.gcda univalue/*.gcno
 CLEANFILES += wallet/*.gcda wallet/*.gcno
 CLEANFILES += wallet/test/*.gcda wallet/test/*.gcno
 CLEANFILES += zmq/*.gcda zmq/*.gcno
+CLEANFILES += xbridge/*.gcda xbridge/*.gcno
+CLEANFILES += xrouter/*.gcda xrouter/*.gcno
+CLEANFILES += servicenode/*.gcda servicenode/*.gcno
 CLEANFILES += obj/build.h
 
 EXTRA_DIST = $(CTAES_DIST)

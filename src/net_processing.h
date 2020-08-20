@@ -16,6 +16,9 @@ class CTxMemPool;
 extern RecursiveMutex cs_main;
 extern RecursiveMutex g_cs_orphans;
 
+/** Increase a node's misbehavior score. */
+extern void Misbehaving(NodeId nodeid, int howmuch, const std::string& message="") EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
 /** Default for -maxorphantx, maximum number of orphan transactions kept in memory */
 static const unsigned int DEFAULT_MAX_ORPHAN_TRANSACTIONS = 100;
 /** Default number of orphan+recently-replaced txn to keep around for block reconstruction */
