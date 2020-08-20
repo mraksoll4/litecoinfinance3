@@ -9,7 +9,7 @@
 
 #include <xrouter/version.h>
 
-#include <keystore.h>
+#include <scriptpubkeyman.h>
 
 #include <deque>
 
