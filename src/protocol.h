@@ -236,6 +236,38 @@ extern const char *GETBLOCKTXN;
 extern const char *BLOCKTXN;
 };
 
+/**
+ * Contains an XBridge message.
+ * @since protocol version 70712
+ */
+extern const char *XBRIDGE;
+/**
+ * Contains a Service Node registration message.
+ * @since protocol version 70713
+ */
+extern const char *SNREGISTER;
+/**
+ * Contains a Service Node ping message.
+ * @since protocol version 70713
+ */
+extern const char *SNPING;
+/**
+ * Contains the Service Node list message.
+ * @since protocol version 70713
+ */
+extern const char *SNLIST;
+/**
+ * Contains the Service Node ping from snlist request.
+ * @since protocol version 70713
+ */
+extern const char *SNLISTPING;
+/**
+ * Contains an XRouter message.
+ * @since protocol version 70712
+ */
+extern const char *XROUTER;
+};
+
 /* Get a vector of all valid message types (see above) */
 const std::vector<std::string> &getAllNetMessageTypes();
 
@@ -270,6 +302,9 @@ enum ServiceFlags : uint64_t {
     // collisions and other cases where nodes may be advertising a service they
     // do not actually support. Other service bits should be allocated via the
     // BIP process.
+
+    // Service Node list support
+    NODE_SNODE_LIST = (1 << 20),
 };
 
 /**

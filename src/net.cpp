@@ -2867,7 +2867,7 @@ CNode* CConnman::OpenXRouterConnection(const CAddress & addrConnect, const char 
     if (pnode)
         return pnode; // If node is already connected return
 
-    pnode = ConnectNode(addrConnect, pszDest, false, true);
+    pnode = ConnectNode(addrConnect, pszDest, false, true, false);
     if (!pnode)
         return nullptr;
     pnode->fXRouter = true;

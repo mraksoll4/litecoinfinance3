@@ -285,7 +285,7 @@ public:
 
             addressId = boost::get<CKeyID>(dest);
             const auto & sighash = sn::ServiceNode::CreateSigHash(snodePubKey, tier, addressId, collateral,
-                                                                  chainActive.Height(), chainActive.Tip()->GetBlockHash());
+                                                                  ChainActive().Height(), ChainActive().Tip()->GetBlockHash());
 
             // Sign the servicenode with the collateral's private key
             CKey sign;
@@ -298,7 +298,7 @@ public:
 
         } else { // OPEN tier
             const auto & sighash = sn::ServiceNode::CreateSigHash(snodePubKey, tier, addressId, collateral,
-                                                                  chainActive.Height(), chainActive.Tip()->GetBlockHash());
+                                                                  ChainActive().Height(), ChainActive().Tip()->GetBlockHash());
 
             if (!key.SignCompact(sighash, sig) || sig.empty()) { // sign with snode pubkey
                 const auto errMsg = strprintf("service node registration failed, bad signature, is the servicenode.conf populated? %s", address);
@@ -307,8 +307,8 @@ public:
             }
         }
 
-        ServiceNode snode(snodePubKey, tier, addressId, collateral, chainActive.Height(),
-                chainActive.Tip()->GetBlockHash(), sig);
+        ServiceNode snode(snodePubKey, tier, addressId, collateral, ChainActive().Height(),
+                ChainActive().Tip()->GetBlockHash(), sig);
         auto snodePtr = addSn(snode);
         if (!snodePtr) {
             const std::string errMsg = "service node registration failed";
@@ -802,7 +802,7 @@ protected:
      */
     static int getActiveChainHeight() {
         LOCK(cs_main);
-        return chainActive.Height();
+        return ChainActive().Height();
     }
 
     /**
@@ -1091,7 +1091,7 @@ protected:
             if (!CheckFinalTx(*pcoin->tx))
                 continue;
 
-            int nDepth = pcoin->GetDepthInMainChain(locked_chain);
+            int nDepth = pcoin->GetDepthInMainChain();
             if (nDepth <= 0) // require confirmations
                 continue;
 

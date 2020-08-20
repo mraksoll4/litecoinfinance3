@@ -55,7 +55,7 @@ public:
         command   = *static_cast<uint32_t*>(static_cast<void*>(&packet[0]+offset)); offset += sizeof(uint32_t);
         timestamp = *static_cast<uint32_t*>(static_cast<void*>(&packet[0]+offset)); offset += sizeof(uint32_t);
         bodysize  = *static_cast<uint32_t*>(static_cast<void*>(&packet[0]+offset)); offset += sizeof(uint32_t);
-        pubkey    = CPubKey(packet.begin()+offset, packet.begin()+offset+CPubKey::COMPRESSED_PUBLIC_KEY_SIZE); offset += CPubKey::COMPRESSED_PUBLIC_KEY_SIZE;
+        pubkey    = CPubKey(packet.begin()+offset, packet.begin()+offset+CPubKey::COMPRESSED_SIZE); offset += CPubKey::COMPRESSED_SIZE;
         signature = std::vector<unsigned char>(packet.begin()+offset, packet.begin()+offset+64); offset += 64;
         body      = std::vector<unsigned char>(packet.begin()+offset, packet.end());
     }
