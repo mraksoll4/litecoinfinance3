@@ -234,8 +234,6 @@ extern const char *GETBLOCKTXN;
  * @since protocol version 70014 as described by BIP 152
  */
 extern const char *BLOCKTXN;
-};
-
 /**
  * Contains an XBridge message.
  * @since protocol version 70712
