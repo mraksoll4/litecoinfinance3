@@ -9,7 +9,7 @@
 
 #include <addrman.h>
 #include <bloom.h>
-#include <scriptpubkeyman.h>
+#include <wallet/scriptpubkeyman.h>
 #include <net.h>
 #include <script/standard.h>
 #include <servicenode/servicenodemgr.h>
