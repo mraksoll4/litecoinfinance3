@@ -361,7 +361,7 @@ public:
      * @param state DOS state
      * @return
      */
-    bool processInvalid(CNode *node, XRouterPacketPtr packet, CValidationState & state);
+    bool processInvalid(CNode *node, XRouterPacketPtr packet, BlockValidationState & state);
 
     /**
      * @brief process reply from service node on *client* side
@@ -370,7 +370,7 @@ public:
      * @param state DOS state
      * @return
      */
-    bool processReply(CNode *node, XRouterPacketPtr packet, CValidationState & state);
+    bool processReply(CNode *node, XRouterPacketPtr packet, BlockValidationState & state);
 
     /**
      * @brief process reply about xrouter config contents
@@ -379,7 +379,7 @@ public:
      * @param state DOS state
      * @return
      */
-    bool processConfigReply(CNode *node, XRouterPacketPtr packet, CValidationState & state);
+    bool processConfigReply(CNode *node, XRouterPacketPtr packet, BlockValidationState & state);
 
     /**
      * @brief process config message from NetMsgType::SNPING packet.
@@ -611,7 +611,7 @@ private:
      * @param state
      * @param pnode
      */
-    void checkDoS(CValidationState & state, CNode *pnode);
+    void checkDoS(BlockValidationState & state, CNode *pnode);
 
     /**
      * Bans the snode if required.

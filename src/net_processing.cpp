@@ -2164,7 +2164,7 @@ bool ProcessMessage(CNode* pfrom, const std::string& msg_type, CDataStream& vRec
         pfrom->fSuccessfullyConnected = true;
         // Used for logging purposes, update the mean block height across connected nodes
         double meanHeights; int nodeCount;
-        if (connman->StoreConnectedNodesBlockHeights(chainActive.Height(), meanHeights, nodeCount)) {
+        if (connman->StoreConnectedNodesBlockHeights(ChainActive().Height(), meanHeights, nodeCount)) {
             meanBlockHeightConnectedNodes = meanHeights;
             estimatedConnectedNodes = nodeCount;
         }
@@ -3122,7 +3122,7 @@ bool ProcessMessage(CNode* pfrom, const std::string& msg_type, CDataStream& vRec
         }
         // Used for logging purposes, update the mean block height across connected nodes
         double meanHeights; int nodeCount;
-        if (connman->StoreConnectedNodesBlockHeights(chainActive.Height(), meanHeights, nodeCount)) {
+        if (connman->StoreConnectedNodesBlockHeights(ChainActive().Height(), meanHeights, nodeCount)) {
             meanBlockHeightConnectedNodes = meanHeights;
             estimatedConnectedNodes = nodeCount;
         }
@@ -3303,7 +3303,7 @@ bool ProcessMessage(CNode* pfrom, const std::string& msg_type, CDataStream& vRec
             if (!smgr.processXBridge(raw))
                 return true;
 
-            CValidationState state;
+            BlockValidationState state;
 
             // Pass packet to XBridge
             if (xapp.isEnabled()) {
