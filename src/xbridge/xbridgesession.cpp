@@ -280,7 +280,7 @@ bool Session::Impl::checkPacketAddress(XBridgePacketPtr packet) const
 
 //*****************************************************************************
 //*****************************************************************************
-bool Session::processPacket(XBridgePacketPtr packet, CValidationState * state)
+bool Session::processPacket(XBridgePacketPtr packet, BlockValidationState * state)
 {
     // DEBUG_TRACE();
 

@@ -18,6 +18,7 @@
 #include <validation.h>
 #ifdef ENABLE_WALLET
 #include <wallet/wallet.h>
+#include <wallet/scriptpubkeyman.h>
 #endif // ENABLE_WALLET
 
 #include <json/json_spirit_utils.h>

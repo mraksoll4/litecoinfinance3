@@ -78,7 +78,7 @@ public:
      * @param packet
      * @return true, if packet decrypted and packet command executed
      */
-    bool processPacket(XBridgePacketPtr packet, CValidationState * state = nullptr);
+    bool processPacket(XBridgePacketPtr packet, BlockValidationState * state = nullptr);
 
 public:
     // service functions

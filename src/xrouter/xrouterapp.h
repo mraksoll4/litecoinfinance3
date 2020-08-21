@@ -21,6 +21,7 @@
 #include <uint256.h>
 #ifdef ENABLE_WALLET
 #include <wallet/wallet.h>
+#include <wallet/scriptpubkeyman.h>
 #endif
 
 #include <algorithm>
@@ -453,10 +454,12 @@ public:
         if (!wallet->IsLocked())
             wallet->TopUpKeyPool();
 
+        CReserveKey reservekey(wallet.get());
         CPubKey vchPubKey;
-        if (provider && provider->GetPubKey(keyID, vchPubKey))
+        if (!reservekey.GetReservedKey(vchPubKey))
             return "";
 
+        reservekey.KeepKey();
         CKeyID keyID = vchPubKey.GetID();
         return EncodeDestination(CTxDestination(keyID));
 #endif // ENABLE_WALLET

@@ -164,7 +164,7 @@ bool XRouterServer::checkFeePayment(const NodeAddr & nodeAddr, const std::string
 
 //*****************************************************************************
 //*****************************************************************************
-void XRouterServer::onMessageReceived(CNode* node, XRouterPacketPtr packet, CValidationState& state)
+void XRouterServer::onMessageReceived(CNode* node, XRouterPacketPtr packet, BlockValidationState& state)
 {
     clearHashedQueries(); // clean up
 
@@ -239,7 +239,7 @@ void XRouterServer::onMessageReceived(CNode* node, XRouterPacketPtr packet, CVal
                                std::to_string(fetchLimit) + ": " + fqService, xrouter::BAD_REQUEST);
 
         auto handlePayment = [this](const bool & expectingPayment, const std::string & feeTransaction,
-                const std::string & fqService, CValidationState & state, const NodeAddr & nodeAddr)
+                const std::string & fqService, BlockValidationState & state, const NodeAddr & nodeAddr)
         {
             if (!expectingPayment)
                 return;

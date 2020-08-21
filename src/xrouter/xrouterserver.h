@@ -57,7 +57,7 @@ public:
      * @param message packet contents
      * @param state variable, used to ban misbehaving nodes
      */
-    void onMessageReceived(CNode* node, XRouterPacketPtr packet, CValidationState & state);
+    void onMessageReceived(CNode* node, XRouterPacketPtr packet, BlockValidationState & state);
     
        /**
      * @brief process xrGetBlockCount call on service node side

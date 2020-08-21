@@ -297,7 +297,7 @@ BOOST_AUTO_TEST_CASE(servicenode_tests_spent_collateral)
         UpdateInput(mtx.vin[0], sigdata);
 
         {
-            CValidationState state;
+            BlockValidationState state;
             LOCK(cs_main);
             BOOST_CHECK(AcceptToMemoryPool(mempool, state, MakeTransactionRef(mtx), nullptr, nullptr, false, 0));
         }
@@ -610,7 +610,7 @@ BOOST_AUTO_TEST_CASE(servicenode_tests_valid_onreorg)
         BOOST_CHECK_MESSAGE(!checkSnode.isValid(GetTxFunc, IsServiceNodeBlockValidFunc), "snode should be invalid");
 
         // Now disconnect spent collateral blocks and verify that snode is still valid
-        CValidationState state;
+        BlockValidationState state;
         for (int i = 0; i <= sn::ServiceNode::VALID_GRACEPERIOD_BLOCKS; ++i)
             InvalidateBlock(state, *params, chainActive.Tip(), false);
         SyncWithValidationInterfaceQueue();
@@ -1619,7 +1619,7 @@ BOOST_AUTO_TEST_CASE(servicenode_tests_rpc)
             LOCK(pos.wallet->cs_wallet);
             BOOST_CHECK_MESSAGE(pos.wallet->CreateTransaction(*locked_chain, vecSend, tx, reservekey, nFeeRequired,
                                 nChangePosRet, strError, cc), "Failed to send coin to other wallet");
-            CValidationState state;
+            BlockValidationState state;
             BOOST_CHECK_MESSAGE(pos.wallet->CommitTransaction(tx, {}, {}, reservekey, g_connman.get(), state),
                                 strprintf("Failed to send coin to other wallet: %s", state.GetRejectReason()));
         }

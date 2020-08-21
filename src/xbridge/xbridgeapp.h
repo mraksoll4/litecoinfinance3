@@ -22,6 +22,7 @@
 #include <uint256.h>
 #ifdef ENABLE_WALLET
 #include <wallet/wallet.h>
+#include <wallet/scriptpubkeyman.h>
 #endif // ENABLE_WALLET
 
 #include <atomic>
@@ -497,7 +498,7 @@ public:
      */
     void onMessageReceived(const std::vector<unsigned char> & id,
                            const std::vector<unsigned char> & message,
-                           CValidationState & state);
+                           BlockValidationState & state);
     //
     /**
      * @brief onBroadcastReceived - processing recieved   broadcast message
@@ -505,7 +506,7 @@ public:
      * @param state
      */
     void onBroadcastReceived(const std::vector<unsigned char> & message,
-                             CValidationState & state);
+                             BlockValidationState & state);
 
     /**
      * @brief processLater

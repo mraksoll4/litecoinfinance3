@@ -768,7 +768,7 @@ std::string App::parseConfig(XRouterSettingsPtr cfg)
 //*****************************************************************************
 //*****************************************************************************
 
-bool App::processInvalid(CNode *node, XRouterPacketPtr packet, CValidationState & state)
+bool App::processInvalid(CNode *node, XRouterPacketPtr packet, BlockValidationState & state)
 {
     const auto & uuid = packet->suuid();
     const auto & nodeAddr = node->GetAddrName();
@@ -794,7 +794,7 @@ bool App::processInvalid(CNode *node, XRouterPacketPtr packet, CValidationState 
     return true;
 }
 
-bool App::processReply(CNode *node, XRouterPacketPtr packet, CValidationState & state)
+bool App::processReply(CNode *node, XRouterPacketPtr packet, BlockValidationState & state)
 {
     const auto & uuid = packet->suuid();
     const auto & nodeAddr = node->GetAddrName();
@@ -823,7 +823,7 @@ bool App::processReply(CNode *node, XRouterPacketPtr packet, CValidationState & 
     return true;
 }
 
-bool App::processConfigReply(CNode *node, XRouterPacketPtr packet, CValidationState & state)
+bool App::processConfigReply(CNode *node, XRouterPacketPtr packet, BlockValidationState & state)
 {
     const auto & uuid = packet->suuid();
     const auto & nodeAddr = node->GetAddrName();
@@ -955,7 +955,7 @@ void App::onMessageReceived(CNode* node, const std::vector<unsigned char> & mess
     requestHandlers.create_thread([this, node, message]() {
         RenameThread("blocknet-xrrequest");
         boost::this_thread::interruption_point();
-        CValidationState state;
+        BlockValidationState state;
 
         bool released{false};
         auto releaseNode = [&released](CNode *pnode) {
@@ -1896,7 +1896,7 @@ bool App::servicenodePubKey(const NodeAddr & node, std::vector<unsigned char> & 
     return false;
 }
 
-void App::checkDoS(CValidationState & state, CNode *pnode) {
+void App::checkDoS(BlockValidationState & state, CNode *pnode) {
     int dos = 0;
     if (state.IsInvalid(dos)) {
         LogPrint(BCLog::XROUTER, "invalid xrouter packet from peer=%d %s : %s\n", pnode->GetId(), pnode->cleanSubVer,

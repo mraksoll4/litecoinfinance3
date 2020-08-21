@@ -386,7 +386,7 @@ static UniValue servicenodecreateinputs(const JSONRPCRequest& request)
     if (wallet->GetBroadcastTransactions() && !g_connman)
         throw JSONRPCError(RPC_MISC_ERROR, "Peer-to-peer functionality missing or disabled");
 
-    CValidationState state;
+    BlockValidationState state;
     if (!wallet->CommitTransaction(tx, {}, {}, reservekey, g_connman.get(), state))
         throw JSONRPCError(RPC_MISC_ERROR, strprintf("Failed to create the proposal submission transaction, it was rejected: %s", FormatStateMessage(state)));
 
