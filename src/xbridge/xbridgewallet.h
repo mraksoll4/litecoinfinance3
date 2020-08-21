@@ -199,7 +199,7 @@ public:
 
     // support for lock/unlock coins (default off)
     bool                         isLockCoinsSupported;
-    mutable CCriticalSection     lockedCoinsLocker;
+    mutable RecursiveMutex     lockedCoinsLocker;
     std::set<wallet::UtxoEntry>  lockedCoins;
 
     // json version for use with rpc

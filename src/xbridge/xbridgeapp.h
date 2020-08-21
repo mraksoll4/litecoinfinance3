@@ -733,17 +733,17 @@ protected:
 private:
     std::unique_ptr<Impl> m_p;
     bool m_disconnecting;
-    CCriticalSection m_lock;
+    RecursiveMutex m_lock;
     std::map<std::string, boost::posix_time::ptime> m_badWallets;
     bool m_updatingWallets{false};
-    CCriticalSection m_updatingWalletsLock;
+    RecursiveMutex m_updatingWalletsLock;
     bool m_stopped{false};
 
     std::vector<TransactionDescrPtr> m_partialOrders;
     std::set<xbridge::wallet::UtxoEntry> m_feeUtxos;
     std::map<std::string, std::set<xbridge::wallet::UtxoEntry> > m_utxosDict;
-    CCriticalSection m_utxosLock;
-    CCriticalSection m_utxosOrderLock;
+    RecursiveMutex m_utxosLock;
+    RecursiveMutex m_utxosOrderLock;
 
     XBridgeDB xdb;
     std::vector<std::string> utxwallets; // unit tests only

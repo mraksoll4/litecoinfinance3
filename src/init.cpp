@@ -1943,7 +1943,7 @@ bool AppInitMain(NodeContext& node)
                     }
                 }
                 if (haveAddr) {
-                    if (!smgr.registerSn(snode, g_connman.get(), wallets, &failReason))
+                    if (!smgr.registerSn(snode, node.connman.get(), wallets, &failReason))
                         LogPrintf("Failed to register service node %s: %s\n", snode.alias, failReason);
                 } else if (!smgr.hasActiveSn())
                     LogPrintf("Failed to register service node %s because the collateral could not be found in the wallet.\n", snode.alias);
@@ -1957,7 +1957,7 @@ bool AppInitMain(NodeContext& node)
                 if (snode.isNull() && !smgr.loadSnRegistrationFromDisk(snode))
                     LogPrintf("Service node auto-registration failed for %s\n", activesn.alias);
                 // Send service ping if snode is registered
-                if (!snode.isNull() && !smgr.sendPing(XROUTER_PROTOCOL_VERSION, xapp.myServicesJSON(), g_connman.get()))
+                if (!snode.isNull() && !smgr.sendPing(XROUTER_PROTOCOL_VERSION, xapp.myServicesJSON(), node.connman.get()))
                     LogPrintf("Service node ping failed after registration for %s\n", activesn.alias);
             }
         }

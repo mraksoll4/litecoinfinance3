@@ -812,7 +812,7 @@ protected:
      */
     static uint256 getActiveChainHash(int blockHeight) {
         LOCK(cs_main);
-        return chainActive[blockHeight]->GetBlockHash();
+        return ChainActive()[blockheight]->GetBlockHash();
     }
 
     /**
@@ -1102,7 +1102,7 @@ protected:
                 if (wallet->IsLockedCoin(entry.first, i))
                     continue;
 
-                if (wallet->IsSpent(locked_chain, wtxid, i))
+                if (wallet->IsSpent(wtxid, i))
                     continue;
 
                 isminetype mine = wallet->IsMine(pcoin->tx->vout[i]);
@@ -1202,7 +1202,7 @@ protected:
 
             // Try re-registering
             std::string failReason;
-            if (registerSn(entry, g_connman.get(), wallets, &failReason))
+            if (registerSn(entry, node.connman.get(), wallets, &failReason))
                 LogPrintf("Service node registration succeeded for %s\n", entry.alias);
             else
                 LogPrintf("Retrying service node %s registration on the next block\n", entry.alias);

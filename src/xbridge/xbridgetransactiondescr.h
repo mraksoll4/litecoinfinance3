@@ -31,7 +31,7 @@ boost::posix_time::ptime intToTime(const uint64_t& number);
 //******************************************************************************
 struct TransactionDescr
 {
-    CCriticalSection _lock;
+    RecursiveMutex _lock;
 
     enum
     {
