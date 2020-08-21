@@ -59,7 +59,7 @@ namespace {
 
         std::vector<CurrencyPair> records;
 
-        CBlockIndex * pindex = chainActive.Tip();
+        CBlockIndex * pindex = ChainActive().Tip();
         auto ts = boost::posix_time::from_time_t(pindex->GetBlockTime());
         while (pindex->pprev != nullptr && query.end() < ts) {
             pindex = pindex->pprev;

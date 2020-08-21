@@ -2704,8 +2704,8 @@ UniValue gettradingdata(const JSONRPCRequest& request)
 
     Array records;
 
-    CBlockIndex * pindex = chainActive.Tip();
-    int64_t timeBegin = chainActive.Tip()->GetBlockTime();
+    CBlockIndex * pindex = ChainActive().Tip();
+    int64_t timeBegin = ChainActive().Tip()->GetBlockTime();
     for (; pindex->pprev && pindex->GetBlockTime() > (timeBegin-30*24*60*60) && countOfBlocks > 0;
              pindex = pindex->pprev, --countOfBlocks)
     {
@@ -2832,8 +2832,8 @@ UniValue dxGetTradingData(const JSONRPCRequest& request)
 
     Array records;
 
-    CBlockIndex * pindex = chainActive.Tip();
-    int64_t timeBegin = chainActive.Tip()->GetBlockTime();
+    CBlockIndex * pindex = ChainActive().Tip();
+    int64_t timeBegin = ChainActive().Tip()->GetBlockTime();
     for (; pindex->pprev && pindex->GetBlockTime() > (timeBegin-30*24*60*60) && countOfBlocks > 0;
              pindex = pindex->pprev, --countOfBlocks)
     {

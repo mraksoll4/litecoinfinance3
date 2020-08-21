@@ -1699,7 +1699,7 @@ xbridge::Error App::sendXBridgeTransaction(const std::string & from,
 
     {
         LOCK(cs_main);
-        blockHash = chainActive.Tip()->pprev->GetBlockHash();
+        blockHash = ChainActive().Tip()->pprev->GetBlockHash();
     }
 
     ptr->hubAddress   = snodeAddress;

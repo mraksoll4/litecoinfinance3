@@ -1202,7 +1202,7 @@ protected:
 
             // Try re-registering
             std::string failReason;
-            if (registerSn(entry, node.connman.get(), wallets, &failReason))
+            if (registerSn(entry, m.node.connman.get(), wallets, &failReason))
                 LogPrintf("Service node registration succeeded for %s\n", entry.alias);
             else
                 LogPrintf("Retrying service node %s registration on the next block\n", entry.alias);

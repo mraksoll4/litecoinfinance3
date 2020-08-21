@@ -5176,7 +5176,7 @@ bool GetTxFunc(const COutPoint & out, CTransactionRef & tx) {
     {
         LOCK(cs_main);
         Coin coin;
-        if (!pcoinsTip->GetCoin(out, coin))
+        if (!coins_view->GetCoin(out, coin))
             return false;
     }
     return true;
@@ -5184,9 +5184,9 @@ bool GetTxFunc(const COutPoint & out, CTransactionRef & tx) {
 
 bool IsServiceNodeBlockValidFunc(const uint64_t & blockNumber, const uint256 & blockHash, const bool & checkStale) {
     LOCK(cs_main);
-    if (checkStale && blockNumber < chainActive.Height() - SNODE_STALE_BLOCKS) // check if stale
+    if (checkStale && blockNumber < ChainActive().Height() - SNODE_STALE_BLOCKS) // check if stale
         return false; // only accept blocks that meet the threshold
-    const auto block = chainActive.Tip()->GetAncestor(blockNumber);
+    const auto block = ChainActive().Tip()->GetAncestor(blockNumber);
     if (!block)
         return false; // fail if block wasn't found
     return block->GetBlockHash() == blockHash;
@@ -5194,5 +5194,5 @@ bool IsServiceNodeBlockValidFunc(const uint64_t & blockNumber, const uint256 & b
 
 int GetChainTipHeight() {
     LOCK(cs_main);
-    return chainActive.Height();
+    return ChainActive().Height();
 }

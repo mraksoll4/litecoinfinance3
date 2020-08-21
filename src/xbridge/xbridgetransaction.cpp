@@ -302,7 +302,7 @@ bool Transaction::isExpiredByBlockNumber() const
         return true; //expired because we don't have this hash in blockchain
 
     int trBlockHeight = blockindex->nHeight;
-    int lastBlockHeight = chainActive.Height();
+    int lastBlockHeight = ChainActive().Height();
 
     if (lastBlockHeight - trBlockHeight > blocksTTL)
         return true;

@@ -297,7 +297,7 @@ static bool ProcessMessage(XRouterPeerMgr & peerMgr, CNode* pfrom, const std::st
         }
         // Used for logging purposes, update the mean block height across connected nodes
         double meanHeights; int nodeCount;
-        if (connman->StoreConnectedNodesBlockHeights(chainActive.Height(), meanHeights, nodeCount)) {
+        if (connman->StoreConnectedNodesBlockHeights(ChainActive().Height(), meanHeights, nodeCount)) {
             meanBlockHeightConnectedNodes = meanHeights;
             estimatedConnectedNodes = nodeCount;
         }
