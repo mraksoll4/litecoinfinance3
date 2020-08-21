@@ -453,12 +453,10 @@ public:
         if (!wallet->IsLocked())
             wallet->TopUpKeyPool();
 
-        CReserveKey reservekey(wallet.get());
         CPubKey vchPubKey;
-        if (!reservekey.GetReservedKey(vchPubKey))
+        if (provider && provider->GetPubKey(keyID, vchPubKey))
             return "";
 
-        reservekey.KeepKey();
         CKeyID keyID = vchPubKey.GetID();
         return EncodeDestination(CTxDestination(keyID));
 #endif // ENABLE_WALLET

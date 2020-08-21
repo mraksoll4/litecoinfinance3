@@ -766,7 +766,7 @@ static std::vector<std::pair<COutPoint,CTxOut>> availableCoins(const bool & only
         auto locked_chain = wallet->chain().lock();
         LOCK2(cs_main, wallet->cs_wallet);
         std::vector<COutput> coins;
-        wallet->AvailableCoins(*locked_chain, coins, onlySafe, nullptr, 1, MAX_MONEY, MAX_MONEY, 0, minDepth, maxDepth);
+        wallet->AvailableCoins(*locked_chain, coins, onlySafe, nullptr, 1, MAX_MONEY, MAX_MONEY, 0);
         if (coins.empty())
             continue;
         for (auto & coin : coins) {

@@ -3283,7 +3283,7 @@ bool ProcessMessage(CNode* pfrom, const std::string& msg_type, CDataStream& vRec
     auto & smgr = sn::ServiceNodeMgr::instance();
     auto & xapp = xbridge::App::instance();
 
-    if (strCommand == NetMsgType::XBRIDGE) { // handle xbridge packets
+    if (msg_type == NetMsgType::XBRIDGE) { // handle xbridge packets
         std::vector<unsigned char> raw;
         vRecv >> raw;
         auto rawcopy = raw;
@@ -3346,7 +3346,7 @@ bool ProcessMessage(CNode* pfrom, const std::string& msg_type, CDataStream& vRec
         return true;
     }
 
-    if (strCommand == NetMsgType::SNREGISTER) { // handle snode registrations
+    if (msg_type == NetMsgType::SNREGISTER) { // handle snode registrations
         sn::ServiceNode snode;
         try {
             if (!smgr.processRegistration(vRecv, snode))
@@ -3377,7 +3377,7 @@ bool ProcessMessage(CNode* pfrom, const std::string& msg_type, CDataStream& vRec
         return true;
     }
 
-    if (strCommand == NetMsgType::SNPING || strCommand == NetMsgType::SNLISTPING) { // handle snode pings
+    if (msg_type == NetMsgType::SNPING || msg_type == NetMsgType::SNLISTPING) { // handle snode pings
         sn::ServiceNodePing ping;
         try {
             if (!smgr.processPing(vRecv, ping))
@@ -3392,7 +3392,7 @@ bool ProcessMessage(CNode* pfrom, const std::string& msg_type, CDataStream& vRec
         }
 
         // Relay packets only on SNPING (not SNLISTPING)
-        if (strCommand == NetMsgType::SNPING) {
+        if (msg_type == NetMsgType::SNPING) {
             connman->ForEachNode([&](CNode* pnode) {
                 if (pfrom == pnode)
                     return;
@@ -3407,7 +3407,7 @@ bool ProcessMessage(CNode* pfrom, const std::string& msg_type, CDataStream& vRec
         return true;
     }
 
-    if (strCommand == NetMsgType::SNLIST) { // handle snode list requests
+    if (msg_type == NetMsgType::SNLIST) { // handle snode list requests
         const auto & snlist = smgr.list();
         for (const auto & snode : snlist) {
             const auto & ping = smgr.getPing(snode.getSnodePubKey());
@@ -3418,7 +3418,7 @@ bool ProcessMessage(CNode* pfrom, const std::string& msg_type, CDataStream& vRec
         return true;
     }
 
-    if (strCommand == NetMsgType::XROUTER) { // handle xrouter packets
+    if (msg_type == NetMsgType::XROUTER) { // handle xrouter packets
         bool isReady = xrouter::App::isEnabled() && xrouter::App::instance().isReady();
         if (isReady) {
             std::vector<unsigned char> raw;
